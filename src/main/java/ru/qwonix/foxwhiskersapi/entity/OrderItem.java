@@ -22,11 +22,11 @@ public class OrderItem {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "order_id")
+    @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
     @ManyToOne
-    @JoinColumn(name = "dish_id")
+    @JoinColumn(name = "dish_id", nullable = false)
     private Dish dish;
 
     @Column(name = "quantity", nullable = false)

@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -20,14 +21,16 @@ public class Dish {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
+    @Column(name = "id")
     private Long id;
+
     @Column(name = "title", nullable = false)
     private String title;
 
     @Column(name = "currency_price", nullable = false)
     private BigDecimal currencyPrice;
 
+    @ColumnDefault("true")
     @Column(name = "is_available", nullable = false)
     private Boolean isAvailable;
 
