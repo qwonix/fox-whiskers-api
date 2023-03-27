@@ -1,16 +1,24 @@
 package ru.qwonix.foxwhiskersapi.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Collection;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 
 @Entity
 @Table(name = "users")
-@Data
-public class User {
+public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -37,6 +45,10 @@ public class User {
     @Column(name = "status")
     private UserStatus status;
 
+    @Enumerated(value = EnumType.STRING)
+    @Column(name = "role")
+    private Role role;
+
     @CreatedDate
     @Column(name = "created")
     private LocalDateTime created;
@@ -45,4 +57,33 @@ public class User {
     @Column(name = "updated")
     private LocalDateTime updated;
 
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return role.getAuthorities();
+    }
+
+    @Override
+    public String getUsername() {
+        return email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return status.equals(UserStatus.ACTIVE);
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return status.equals(UserStatus.ACTIVE);
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return status.equals(UserStatus.ACTIVE);
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return status.equals(UserStatus.ACTIVE);
+    }
 }
