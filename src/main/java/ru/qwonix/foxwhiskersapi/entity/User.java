@@ -1,61 +1,44 @@
 package ru.qwonix.foxwhiskersapi.entity;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 import java.util.Collection;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 
 @Entity
-@Table(name = "users")
+@Table(name = "`user`")
 public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "first_name", nullable = false)
-    private String firstName;
-
-    @Column(name = "last_name")
-    private String lastName;
-
-    @Column(name = "middle_name")
-    private String middleName;
-
     @Column(name = "email", nullable = false, unique = true)
     private String email;
 
-    @Column(name = "phone_number", unique = true)
-    private String phoneNumber;
-
     @Column(name = "password")
     private String password;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status")
-    private UserStatus status;
 
     @Enumerated(value = EnumType.STRING)
     @Column(name = "role")
     private Role role;
 
-    @CreatedDate
-    @Column(name = "created")
-    private LocalDateTime created;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private UserStatus status;
 
-    @LastModifiedDate
-    @Column(name = "updated")
-    private LocalDateTime updated;
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "client_details_id")
+    private ClientDetails clientDetails;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
