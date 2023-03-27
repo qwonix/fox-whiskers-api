@@ -19,17 +19,8 @@ import java.security.Key;
 
 @Configuration
 public class SecurityConfig {
-    private final JwtTokenFilter jwtTokenFilter;
-
-    @Value("${jwt.secret}")
-    private String secretKey;
-
-    public SecurityConfig(JwtTokenFilter jwtTokenFilter) {
-        this.jwtTokenFilter = jwtTokenFilter;
-    }
-
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, JwtTokenFilter jwtTokenFilter) throws Exception {
         http
                 .csrf().disable()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -50,13 +41,14 @@ public class SecurityConfig {
     }
 
     @Bean
-    public Key key() {
+    public Key key(@Value("${jwt.secret}") String secretKey) {
         return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
             throws Exception {
+
         return authenticationConfiguration.getAuthenticationManager();
     }
 
