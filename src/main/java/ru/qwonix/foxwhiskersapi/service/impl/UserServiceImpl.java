@@ -2,11 +2,14 @@ package ru.qwonix.foxwhiskersapi.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import ru.qwonix.foxwhiskersapi.dto.RegistrationRequestDTO;
+import ru.qwonix.foxwhiskersapi.entity.ClientDetails;
+import ru.qwonix.foxwhiskersapi.entity.Role;
 import ru.qwonix.foxwhiskersapi.entity.User;
 import ru.qwonix.foxwhiskersapi.entity.UserStatus;
+import ru.qwonix.foxwhiskersapi.exception.UserAlreadyExistsException;
 import ru.qwonix.foxwhiskersapi.repository.UserRepository;
 import ru.qwonix.foxwhiskersapi.service.UserService;
 
@@ -21,15 +24,32 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, @Lazy PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
+
     @Override
-    public User register(User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setStatus(UserStatus.ACTIVE);
+    public User register(RegistrationRequestDTO request) throws UserAlreadyExistsException {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new UserAlreadyExistsException("User with email " + request.getEmail() + " already exists");
+        }
+
+        ClientDetails clientDetails = ClientDetails.builder()
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .middleName(request.getMiddleName())
+                .phoneNumber(request.getPhoneNumber())
+                .build();
+
+        User user = User.builder()
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .role(Role.USER)
+                .status(UserStatus.ACTIVE)
+                .clientDetails(clientDetails)
+                .build();
 
         User registeredUser = userRepository.save(user);
 
