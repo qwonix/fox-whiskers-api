@@ -1,24 +1,20 @@
 package ru.qwonix.foxwhiskersapi.entity;
 
-
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
 
 import javax.persistence.*;
-import java.math.BigDecimal;
+import java.util.List;
 
 @Data
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 
 @Entity
-@Table(name = "dish")
-public class Dish {
-
+@Table(name = "dish_type")
+public class DishType {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -27,20 +23,10 @@ public class Dish {
     @Column(name = "title", nullable = false)
     private String title;
 
-    @Column(name = "currency_price", nullable = false)
-    private BigDecimal currencyPrice;
-
     @ColumnDefault("true")
     @Column(name = "is_available", nullable = false)
     private Boolean isAvailable;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "dish_type_id")
-    private DishType dishType;
-
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinColumn(name = "dish_details_id", nullable = false)
-    private DishDetails dishDetails;
-
+    @OneToMany(mappedBy = "dishType")
+    private List<Dish> dishes;
 }
-
