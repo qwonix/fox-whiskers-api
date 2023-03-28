@@ -1,6 +1,5 @@
 package ru.qwonix.foxwhiskersapi.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -29,8 +28,7 @@ public class ImageData {
     @Column(name = "mime_type", nullable = false)
     private String mimeType;
 
-    @JsonIgnore
-    @Lob
+    @Basic(fetch = FetchType.LAZY)
     @Column(name = "bytes")
     private byte[] bytes;
 }
