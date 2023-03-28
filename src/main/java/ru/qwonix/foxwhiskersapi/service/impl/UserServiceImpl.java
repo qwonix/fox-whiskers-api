@@ -9,7 +9,7 @@ import ru.qwonix.foxwhiskersapi.entity.ClientDetails;
 import ru.qwonix.foxwhiskersapi.entity.Role;
 import ru.qwonix.foxwhiskersapi.entity.User;
 import ru.qwonix.foxwhiskersapi.entity.UserStatus;
-import ru.qwonix.foxwhiskersapi.exception.UserAlreadyExistsException;
+import ru.qwonix.foxwhiskersapi.exception.AlreadyExistsException;
 import ru.qwonix.foxwhiskersapi.repository.UserRepository;
 import ru.qwonix.foxwhiskersapi.service.UserService;
 
@@ -31,9 +31,9 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public User register(RegistrationRequestDTO request) throws UserAlreadyExistsException {
+    public User register(RegistrationRequestDTO request) throws AlreadyExistsException {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new UserAlreadyExistsException("User with email " + request.getEmail() + " already exists");
+            throw new AlreadyExistsException("User with email " + request.getEmail() + " already exists");
         }
 
         ClientDetails clientDetails = ClientDetails.builder()

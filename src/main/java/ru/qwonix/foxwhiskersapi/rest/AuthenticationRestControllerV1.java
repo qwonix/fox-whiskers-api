@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.qwonix.foxwhiskersapi.dto.AuthenticationRequestDTO;
 import ru.qwonix.foxwhiskersapi.dto.RegistrationRequestDTO;
 import ru.qwonix.foxwhiskersapi.entity.User;
-import ru.qwonix.foxwhiskersapi.exception.UserAlreadyExistsException;
+import ru.qwonix.foxwhiskersapi.exception.AlreadyExistsException;
 import ru.qwonix.foxwhiskersapi.security.JwtTokenProvider;
 import ru.qwonix.foxwhiskersapi.service.UserService;
 
@@ -62,7 +62,7 @@ public class AuthenticationRestControllerV1 {
         try {
             User registeredUser = userService.register(requestUser);
             return ResponseEntity.ok().body(registeredUser);
-        } catch (UserAlreadyExistsException e) {
+        } catch (AlreadyExistsException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Username is already taken");
         }
     }
