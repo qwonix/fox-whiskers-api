@@ -2,7 +2,6 @@ package ru.qwonix.foxwhiskersapi.security;
 
 import io.jsonwebtoken.*;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -26,7 +25,7 @@ public class JwtTokenProvider {
     @Value("${jwt.expiration}")
     private long validityInMilliseconds;
 
-    public JwtTokenProvider(UserDetailsService userDetailsService, @Lazy Key key) {
+    public JwtTokenProvider(UserDetailsService userDetailsService, Key key) {
         this.userDetailsService = userDetailsService;
         this.key = key;
     }
