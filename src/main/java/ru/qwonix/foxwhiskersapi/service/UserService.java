@@ -8,7 +8,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface UserService {
-    User register(RegistrationRequestDTO request) throws AlreadyExistsException;
+
+    User save(User user);
 
     List<User> getAll();
 
@@ -18,4 +19,5 @@ public interface UserService {
 
     void delete(Long id);
 
+    boolean existsByEmail(String email);
 }

@@ -4,10 +4,6 @@ package ru.qwonix.foxwhiskersapi.rest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,7 +12,8 @@ import ru.qwonix.foxwhiskersapi.dto.AuthenticationRequestDTO;
 import ru.qwonix.foxwhiskersapi.dto.RegistrationRequestDTO;
 import ru.qwonix.foxwhiskersapi.entity.User;
 import ru.qwonix.foxwhiskersapi.exception.AlreadyExistsException;
-import ru.qwonix.foxwhiskersapi.security.JwtTokenProvider;
+import ru.qwonix.foxwhiskersapi.security.JwtAuthenticationProvider;
+import ru.qwonix.foxwhiskersapi.service.AuthenticationService;
 import ru.qwonix.foxwhiskersapi.service.UserService;
 
 import java.util.HashMap;
@@ -27,31 +24,32 @@ import java.util.Map;
 @RequestMapping("/api/v1/auth")
 public class AuthenticationRestControllerV1 {
 
-    private final AuthenticationManager authenticationManager;
+    private final JwtAuthenticationProvider jwtAuthenticationProvider;
     private final UserService userService;
-    private final JwtTokenProvider jwtTokenProvider;
 
-    public AuthenticationRestControllerV1(AuthenticationManager authenticationManager, UserService userService, JwtTokenProvider jwtTokenProvider) {
-        this.authenticationManager = authenticationManager;
+    private final AuthenticationService authenticationService;
+
+    public AuthenticationRestControllerV1(JwtAuthenticationProvider jwtAuthenticationProvider, UserService userService, AuthenticationService authenticationService) {
+        this.jwtAuthenticationProvider = jwtAuthenticationProvider;
         this.userService = userService;
-        this.jwtTokenProvider = jwtTokenProvider;
+        this.authenticationService = authenticationService;
     }
+
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthenticationRequestDTO requestUser) {
         log.info("LOGIN request {}", requestUser);
-        try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(requestUser.getEmail(), requestUser.getPassword()));
-            userService.findByEmail(requestUser.getEmail())
-                    .orElseThrow(() -> new UsernameNotFoundException("User doesn't exists"));
 
-            String token = jwtTokenProvider.createToken(requestUser.getEmail());
+        // TODO: 03-Apr-23 add UsernamePassword Authentication
+        if (authenticationService.canlogin(requestUser.getEmail(), requestUser.getPassword())) {
+            User user = userService.findByEmail(requestUser.getEmail()).get();
+            String accessToken = jwtAuthenticationProvider.generateAccessToken(user);
+            String refreshToken = jwtAuthenticationProvider.generateRefreshToken(user);
             Map<Object, Object> response = new HashMap<>();
-            response.put("token", token);
+            response.put("accessToken", accessToken);
+            response.put("refreshToken", refreshToken);
             return ResponseEntity.ok(response);
-        } catch (UsernameNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Invalid email/password combination");
-        } catch (AuthenticationException e) {
+        } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Invalid email/password combination");
         }
     }
@@ -60,8 +58,8 @@ public class AuthenticationRestControllerV1 {
     public ResponseEntity<?> register(@RequestBody RegistrationRequestDTO requestUser) {
         log.info("REGISTER request {}", requestUser);
         try {
-            User registeredUser = userService.register(requestUser);
-            return ResponseEntity.ok().body(registeredUser);
+            authenticationService.register(requestUser);
+            return ResponseEntity.status(HttpStatus.CREATED).build();
         } catch (AlreadyExistsException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Username is already taken");
         }

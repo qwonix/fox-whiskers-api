@@ -1,4 +1,4 @@
-package ru.qwonix.foxwhiskersapi.security;
+package ru.qwonix.foxwhiskersapi.exception;
 
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
