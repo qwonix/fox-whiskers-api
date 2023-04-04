@@ -14,8 +14,8 @@ import java.util.Collection;
 @ToString
 public class JwtAuthenticationToken extends AbstractAuthenticationToken {
 
-    private String username;
     private final String jwtToken;
+    private String username;
 
     public JwtAuthenticationToken(String jwtToken) {
         super(null);

@@ -1,22 +1,17 @@
 package ru.qwonix.foxwhiskersapi.security;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import ru.qwonix.foxwhiskersapi.exception.JwtAuthenticationException;
-import ru.qwonix.foxwhiskersapi.service.UserService;
 
 import java.security.Key;
 import java.time.Duration;
@@ -26,27 +21,22 @@ import java.time.ZoneId;
 import java.util.Date;
 
 @Slf4j
-@Component
 public class JwtAuthenticationProvider implements AuthenticationProvider {
 
-    private final UserService userService;
+    private final UserDetailsService userDetailsService;
 
     private final Key jwtSecretAccess;
     private final Key jwtSecretRefresh;
 
-
-    @Value("${jwt.expiration.access}")
     private Duration accessExpiration;
-    @Value("${jwt.expiration.refresh}")
     private Duration refreshExpiration;
 
-
-    public JwtAuthenticationProvider(UserService userService,
-                                     @Value("${jwt.secret.access}") String jwtAccessSecret,
-                                     @Value("${jwt.secret.refresh}") String jwtRefreshSecret) {
-        this.userService = userService;
+    public JwtAuthenticationProvider(UserDetailsService userDetailsService, String jwtAccessSecret, String jwtRefreshSecret) {
+        this.userDetailsService = userDetailsService;
         this.jwtSecretAccess = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtAccessSecret));
         this.jwtSecretRefresh = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtRefreshSecret));
+        this.accessExpiration = Duration.ofDays(1);
+        this.refreshExpiration = Duration.ofDays(30);
     }
 
     @Override
@@ -55,19 +45,20 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
     }
 
     @Override
-    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+    public Authentication authenticate(Authentication authentication) throws JwtAuthenticationException {
         Assert.isInstanceOf(JwtAuthenticationToken.class, authentication);
 
         String token = determineToken(authentication);
-        if (!validateAccessToken(token)) {
-            throw new JwtAuthenticationException("Invalid JWT token", HttpStatus.UNAUTHORIZED);
+        String username;
+        try {
+            validateAccessToken(token);
+            username = getAccessClaims(token).getSubject();
+            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+            return JwtAuthenticationToken.authenticated(token, username, userDetails.getAuthorities());
+        } catch (JwtException | UsernameNotFoundException e) {
+            throw new JwtAuthenticationException("Invalid JWT token", e);
         }
-
-        String username = getAccessClaims(token).getSubject();
-        UserDetails userDetails = userService.findByEmail(username).orElseThrow(() ->
-                new UsernameNotFoundException("User with email " + username + " not found"));
-
-        return JwtAuthenticationToken.authenticated(token, username, userDetails.getAuthorities());
     }
 
     private String determineToken(Authentication authentication) {
@@ -98,39 +89,50 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
                 .compact();
     }
 
-    public boolean validateAccessToken(String accessToken) {
+    public boolean validateAccessToken(String accessToken) throws
+            ExpiredJwtException, UnsupportedJwtException, MalformedJwtException, SignatureException, IllegalArgumentException {
         return validateToken(accessToken, jwtSecretAccess);
     }
 
-    public boolean validateRefreshToken(String refreshToken) {
+    public boolean validateRefreshToken(String refreshToken) throws
+            ExpiredJwtException, UnsupportedJwtException, MalformedJwtException, SignatureException, IllegalArgumentException {
         return validateToken(refreshToken, jwtSecretRefresh);
     }
 
-    private boolean validateToken(String token, Key secret) {
-        try {
-            Jwts.parserBuilder()
-                    .setSigningKey(secret)
-                    .build()
-                    .parseClaimsJws(token);
-            return true;
-        } catch (JwtException | IllegalArgumentException e) {
-            return false;
-        }
+    private boolean validateToken(String token, Key secret) throws
+            ExpiredJwtException, UnsupportedJwtException, MalformedJwtException, SignatureException, IllegalArgumentException {
+        Jwts.parserBuilder()
+                .setSigningKey(secret)
+                .build()
+                .parseClaimsJws(token);
+
+        return true;
     }
 
-    public Claims getAccessClaims(String token) {
+    public Claims getAccessClaims(String token) throws
+            ExpiredJwtException, UnsupportedJwtException, MalformedJwtException, SignatureException, IllegalArgumentException {
         return getClaims(token, jwtSecretAccess);
     }
 
-    public Claims getRefreshClaims(String token) {
+    public Claims getRefreshClaims(String token) throws
+            ExpiredJwtException, UnsupportedJwtException, MalformedJwtException, SignatureException, IllegalArgumentException {
         return getClaims(token, jwtSecretRefresh);
     }
 
-    private Claims getClaims(String token, Key secret) {
+    private Claims getClaims(String token, Key secret) throws
+            ExpiredJwtException, UnsupportedJwtException, MalformedJwtException, SignatureException, IllegalArgumentException {
         return Jwts.parserBuilder()
                 .setSigningKey(secret)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+    }
+
+    public void setAccessExpiration(Duration accessExpiration) {
+        this.accessExpiration = accessExpiration;
+    }
+
+    public void setRefreshExpiration(Duration refreshExpiration) {
+        this.refreshExpiration = refreshExpiration;
     }
 }

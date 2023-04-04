@@ -1,11 +1,16 @@
 package ru.qwonix.foxwhiskersapi.service;
 
+import org.springframework.security.core.userdetails.UserDetailsService;
+import ru.qwonix.foxwhiskersapi.dto.AuthenticationRequestDTO;
+import ru.qwonix.foxwhiskersapi.dto.AuthenticationResponseDTO;
+import ru.qwonix.foxwhiskersapi.dto.RefreshJwtRequestDTO;
 import ru.qwonix.foxwhiskersapi.dto.RegistrationRequestDTO;
 import ru.qwonix.foxwhiskersapi.entity.User;
-import ru.qwonix.foxwhiskersapi.exception.AlreadyExistsException;
 
-public interface AuthenticationService {
-    User register(RegistrationRequestDTO request) throws AlreadyExistsException;
+public interface AuthenticationService extends UserDetailsService {
+    User register(RegistrationRequestDTO request);
 
-    boolean canlogin(String email, String password);
+    AuthenticationResponseDTO login(AuthenticationRequestDTO requestUser);
+
+    AuthenticationResponseDTO refresh(RefreshJwtRequestDTO request);
 }

@@ -2,7 +2,6 @@ package ru.qwonix.foxwhiskersapi.security;
 
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -18,9 +17,6 @@ import java.io.IOException;
 
 @Slf4j
 public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
-
-    @Value("${jwt.header}")
-    private String authorizationHeader;
 
     private final RequestMatcher excludeRequestMatcher;
 
@@ -50,7 +46,7 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
      * @return the token that will be presented in the Authentication request token to the AuthenticationManager
      */
     private String obtainToken(HttpServletRequest request) {
-        return request.getHeader(this.authorizationHeader);
+        return request.getHeader("Authorization");
     }
 
     @Override
