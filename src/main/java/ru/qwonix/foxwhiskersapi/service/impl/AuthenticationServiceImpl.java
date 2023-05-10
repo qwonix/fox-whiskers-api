@@ -4,62 +4,71 @@ import io.jsonwebtoken.JwtException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import ru.qwonix.foxwhiskersapi.dto.AuthenticationRequestDTO;
 import ru.qwonix.foxwhiskersapi.dto.AuthenticationResponseDTO;
 import ru.qwonix.foxwhiskersapi.dto.RefreshJwtRequestDTO;
-import ru.qwonix.foxwhiskersapi.dto.RegistrationRequestDTO;
-import ru.qwonix.foxwhiskersapi.entity.ClientDetails;
-import ru.qwonix.foxwhiskersapi.entity.Role;
-import ru.qwonix.foxwhiskersapi.entity.User;
-import ru.qwonix.foxwhiskersapi.entity.UserStatus;
+import ru.qwonix.foxwhiskersapi.dto.UpdateClientDTO;
+import ru.qwonix.foxwhiskersapi.entity.Client;
 import ru.qwonix.foxwhiskersapi.exception.JwtAuthenticationException;
-import ru.qwonix.foxwhiskersapi.exception.RegistrationException;
+import ru.qwonix.foxwhiskersapi.exception.UpdateException;
+import ru.qwonix.foxwhiskersapi.repository.AuthenticationRepository;
 import ru.qwonix.foxwhiskersapi.security.JwtAuthenticationProvider;
+import ru.qwonix.foxwhiskersapi.security.NoPasswordAuthentication;
 import ru.qwonix.foxwhiskersapi.service.AuthenticationService;
-import ru.qwonix.foxwhiskersapi.service.UserService;
+import ru.qwonix.foxwhiskersapi.service.ClientService;
+
+import java.util.Optional;
 
 @Slf4j
 @Service
 public class AuthenticationServiceImpl implements AuthenticationService {
 
-    private final UserService userService;
+    private final ClientService clientService;
     private final PasswordEncoder passwordEncoder;
-    private final AuthenticationManager authenticationManager;
+    private final AuthenticationRepository authenticationRepository;
     private final JwtAuthenticationProvider jwtAuthenticationProvider;
 
-    public AuthenticationServiceImpl(UserService userService,
+    public AuthenticationServiceImpl(ClientService clientService,
                                      PasswordEncoder passwordEncoder,
-                                     @Lazy AuthenticationManager authenticationManager,
+                                     AuthenticationRepository authenticationRepository,
                                      @Lazy JwtAuthenticationProvider jwtAuthenticationProvider) {
-        this.userService = userService;
+        this.clientService = clientService;
         this.passwordEncoder = passwordEncoder;
-        this.authenticationManager = authenticationManager;
+        this.authenticationRepository = authenticationRepository;
         this.jwtAuthenticationProvider = jwtAuthenticationProvider;
     }
 
     @Override
-    public AuthenticationResponseDTO login(AuthenticationRequestDTO requestUser) {
-        UserDetails userDetails = loadUserByUsername(requestUser.getUsername());
-        UsernamePasswordAuthenticationToken authentication =
-                UsernamePasswordAuthenticationToken.unauthenticated(userDetails, requestUser.getPassword());
+    public AuthenticationResponseDTO authenticate(AuthenticationRequestDTO request) {
+        String phoneNumber = request.getPhoneNumber();
+        Integer code = request.getCode();
 
-        Authentication authenticate = authenticationManager.authenticate(authentication);
+        Authentication authenticate = authenticationRepository.authenticate(phoneNumber, code);
 
         if (authenticate.isAuthenticated()) {
-            String accessToken = jwtAuthenticationProvider.generateAccessToken(userDetails);
-            String refreshToken = jwtAuthenticationProvider.generateRefreshToken(userDetails);
+//            Client client = Client.builder()
+//                    .phoneNumber(phoneNumber).build();
+//            userService.save(client);
+
+            String accessToken = jwtAuthenticationProvider.generateAccessToken(phoneNumber);
+            String refreshToken = jwtAuthenticationProvider.generateRefreshToken(phoneNumber);
             return new AuthenticationResponseDTO(accessToken, refreshToken);
         } else {
-            throw new BadCredentialsException("Invalid username/password combination");
+            throw new BadCredentialsException("Invalid username/code combination");
         }
+    }
+
+    @Override
+    public Boolean sendCode(String phoneNumber) {
+        clientService.save(Client.builder()
+                .phoneNumber(phoneNumber)
+                .build());
+        return authenticationRepository.sendCode(phoneNumber);
     }
 
     @Override
@@ -70,48 +79,41 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             jwtAuthenticationProvider.validateRefreshToken(token);
             String username = jwtAuthenticationProvider.getRefreshClaims(token).getSubject();
 
-            UserDetails userDetails = loadUserByUsername(username);
+            NoPasswordAuthentication client = loadUserByUsername(username);
 
-            String accessToken = jwtAuthenticationProvider.generateAccessToken(userDetails);
-            String refreshToken = jwtAuthenticationProvider.generateRefreshToken(userDetails);
+            String accessToken = jwtAuthenticationProvider.generateAccessToken(client.getUsername());
+            String refreshToken = jwtAuthenticationProvider.generateRefreshToken(client.getUsername());
             return new AuthenticationResponseDTO(accessToken, refreshToken);
         } catch (JwtException | UsernameNotFoundException e) {
             throw new JwtAuthenticationException("Invalid refresh JWT token", e);
         }
     }
 
+    @Override
+    public NoPasswordAuthentication loadUserByUsername(String username) {
+        return clientService.findByPhoneNumber(username).orElseThrow(() -> new UsernameNotFoundException("client"));
+    }
 
     @Override
-    public User register(RegistrationRequestDTO request) {
-        if (userService.existsByEmail(request.getUsername())) {
-            throw new RegistrationException(HttpStatus.CONFLICT, "User with username " + request.getUsername() + " already exists");
+    public Client update(UpdateClientDTO request) {
+        Optional<Client> optionalClient = clientService.findByPhoneNumber(request.getPhoneNumber());
+
+        if (optionalClient.isPresent()) {
+            Client client = optionalClient.get();
+
+            client.setFirstName(request.getFirstName());
+            client.setLastName(request.getLastName());
+            client.setEmail(request.getEmail());
+
+            Client updatedClient = clientService.save(client);
+
+            log.info("client has been successfully updated: {}", updatedClient);
+            return updatedClient;
+        } else {
+            throw new UpdateException(HttpStatus.CONFLICT, "client with username " + request.getPhoneNumber() + " not exists");
         }
-
-        ClientDetails clientDetails = ClientDetails.builder()
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .middleName(request.getMiddleName())
-                .phoneNumber(request.getPhoneNumber())
-                .build();
-
-        User user = User.builder()
-                .email(request.getUsername())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .role(Role.USER)
-                .status(UserStatus.ACTIVE)
-                .clientDetails(clientDetails)
-                .build();
-
-        User registeredUser = userService.save(user);
-
-        log.info("New user has been successfully registered: {}", registeredUser);
-        return registeredUser;
     }
 
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userService.findByEmail(username).orElseThrow(() ->
-                new UsernameNotFoundException("User with username " + username + " not found"));
-    }
+
 }
 

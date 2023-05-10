@@ -9,7 +9,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public enum Role {
-    USER(new HashSet<>(Collections.singletonList(Permission.READ))),
+    CLIENT(new HashSet<>(Collections.singletonList(Permission.READ))),
     ADMIN(new HashSet<>(Arrays.asList(Permission.READ, Permission.WRITE)));
 
     private final Set<Permission> permissions;

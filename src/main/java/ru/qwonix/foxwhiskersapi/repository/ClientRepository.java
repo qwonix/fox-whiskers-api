@@ -1,12 +1,15 @@
 package ru.qwonix.foxwhiskersapi.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import ru.qwonix.foxwhiskersapi.entity.User;
+import ru.qwonix.foxwhiskersapi.entity.Client;
 
 import java.util.Optional;
 
-public interface UserRepository extends JpaRepository<User, Long> {
-    Optional<User> findByEmail(String email);
+public interface ClientRepository extends JpaRepository<Client, Long> {
+
+
+
+    Optional<Client> findByEmail(String email);
 
     boolean existsByEmail(String email);
 }

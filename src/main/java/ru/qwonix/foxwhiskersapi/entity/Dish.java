@@ -30,17 +30,15 @@ public class Dish {
     @Column(name = "currency_price", nullable = false)
     private BigDecimal currencyPrice;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "dish_type_id")
+    private DishType type;
+
+    @OneToOne(mappedBy = "dish", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private DishDetails dishDetails;
+
     @ColumnDefault("true")
     @Column(name = "is_available", nullable = false)
     private Boolean isAvailable;
-
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "dish_type_id")
-    private DishType dishType;
-
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinColumn(name = "dish_details_id", nullable = false)
-    private DishDetails dishDetails;
-
 }
 

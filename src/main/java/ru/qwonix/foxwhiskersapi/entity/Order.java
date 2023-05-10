@@ -1,6 +1,9 @@
 package ru.qwonix.foxwhiskersapi.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
@@ -8,10 +11,14 @@ import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 
 @Entity
 @Table(name = "`order`")
-@Data
 public class Order {
 
     // FIXME: 23-Mar-23 remove GenerationType.SEQUENCE
@@ -20,15 +27,16 @@ public class Order {
      * if several clients connect to the database
      */
     @Id
-    @SequenceGenerator(name = "order_seq",
-            sequenceName = "order_sequence",
-            allocationSize = 20)
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "order_seq")
-    private Long id;
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(
+            name = "UUID",
+            strategy = "org.hibernate.id.UUIDGenerator"
+    )
+    private UUID id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @JoinColumn(name = "client_id", nullable = false)
+    private Client client;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")

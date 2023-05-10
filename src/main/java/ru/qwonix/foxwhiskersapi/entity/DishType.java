@@ -1,6 +1,7 @@
 package ru.qwonix.foxwhiskersapi.entity;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
@@ -11,6 +12,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 
 @Entity
 @Table(name = "dish_type")
@@ -25,8 +27,5 @@ public class DishType {
 
     @ColumnDefault("true")
     @Column(name = "is_available", nullable = false)
-    private Boolean isAvailable;
-
-    @OneToMany(mappedBy = "dishType")
-    private List<Dish> dishes;
+    private Boolean isAvailable = true;
 }

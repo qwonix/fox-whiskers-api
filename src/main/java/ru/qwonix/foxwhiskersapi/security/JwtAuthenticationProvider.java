@@ -11,7 +11,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.util.Assert;
+import ru.qwonix.foxwhiskersapi.entity.Client;
 import ru.qwonix.foxwhiskersapi.exception.JwtAuthenticationException;
+import ru.qwonix.foxwhiskersapi.service.AuthenticationService;
 
 import java.security.Key;
 import java.time.Duration;
@@ -23,7 +25,7 @@ import java.util.Date;
 @Slf4j
 public class JwtAuthenticationProvider implements AuthenticationProvider {
 
-    private final UserDetailsService userDetailsService;
+    private final AuthenticationService authenticationService;
 
     private final Key jwtSecretAccess;
     private final Key jwtSecretRefresh;
@@ -31,8 +33,8 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
     private Duration accessExpiration;
     private Duration refreshExpiration;
 
-    public JwtAuthenticationProvider(UserDetailsService userDetailsService, String jwtAccessSecret, String jwtRefreshSecret) {
-        this.userDetailsService = userDetailsService;
+    public JwtAuthenticationProvider(AuthenticationService authenticationService, String jwtAccessSecret, String jwtRefreshSecret) {
+        this.authenticationService = authenticationService;
         this.jwtSecretAccess = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtAccessSecret));
         this.jwtSecretRefresh = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtRefreshSecret));
         this.accessExpiration = Duration.ofDays(1);
@@ -53,7 +55,7 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
         try {
             validateAccessToken(token);
             username = getAccessClaims(token).getSubject();
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            NoPasswordAuthentication userDetails = authenticationService.loadUserByUsername(username);
 
             return JwtAuthenticationToken.authenticated(token, username, userDetails.getAuthorities());
         } catch (JwtException | UsernameNotFoundException e) {
@@ -65,25 +67,25 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
         return (authentication.getCredentials() == null) ? "NONE_PROVIDED" : authentication.getCredentials().toString();
     }
 
-    public String generateAccessToken(UserDetails user) {
+    public String generateAccessToken(String subject) {
         final LocalDateTime now = LocalDateTime.now();
         final Instant accessExpirationInstant =
                 now.plus(accessExpiration).atZone(ZoneId.systemDefault()).toInstant();
 
         return Jwts.builder()
-                .setSubject(user.getUsername())
+                .setSubject(subject)
                 .setExpiration(Date.from(accessExpirationInstant))
                 .signWith(jwtSecretAccess)
                 .compact();
     }
 
-    public String generateRefreshToken(UserDetails user) {
+    public String generateRefreshToken(String subject) {
         final LocalDateTime now = LocalDateTime.now();
         final Instant refreshExpirationInstant =
                 now.plus(refreshExpiration).atZone(ZoneId.systemDefault()).toInstant();
 
         return Jwts.builder()
-                .setSubject(user.getUsername())
+                .setSubject(subject)
                 .setExpiration(Date.from(refreshExpirationInstant))
                 .signWith(jwtSecretRefresh)
                 .compact();

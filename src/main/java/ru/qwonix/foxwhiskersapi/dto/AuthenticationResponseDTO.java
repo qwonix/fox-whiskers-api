@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class AuthenticationResponseDTO {
-    private final String accessToken;
-    private final String refreshToken;
+    private final String jwtAccessToken;
+    private final String jwtRefreshToken;
 }

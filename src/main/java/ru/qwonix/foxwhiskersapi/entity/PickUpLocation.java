@@ -1,6 +1,14 @@
 package ru.qwonix.foxwhiskersapi.entity;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import javax.persistence.*;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 
 @Entity
 @Table(name = "pick_up_location")

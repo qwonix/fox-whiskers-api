@@ -23,6 +23,13 @@ public class DishDetails {
     @Column(name = "composition_text", nullable = false)
     private String compositionText;
 
+    @Column(name = "measure_text", nullable = false)
+    private String measureText;
+
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinColumn(name = "dish_id", nullable = false)
+    private Dish dish;
+
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "image_data_id")
     private ImageData imageData;
