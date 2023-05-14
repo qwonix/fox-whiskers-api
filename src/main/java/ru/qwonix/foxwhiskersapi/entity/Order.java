@@ -1,6 +1,7 @@
 package ru.qwonix.foxwhiskersapi.entity;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
@@ -16,6 +17,7 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 
 @Entity
 @Table(name = "`order`")
@@ -42,11 +44,8 @@ public class Order {
     @Column(name = "status")
     private OrderStatus status;
 
-    @OneToMany(mappedBy = "order")
+    @OneToMany(mappedBy = "order", cascade = CascadeType.PERSIST)
     private List<OrderItem> orderItems;
-
-    @Column(name = "total_price")
-    private BigDecimal totalPrice;
 
     @CreatedDate
     @Column(name = "created")

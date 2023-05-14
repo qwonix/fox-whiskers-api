@@ -1,17 +1,16 @@
 package ru.qwonix.foxwhiskersapi.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.*;
 
 import javax.persistence.*;
-import java.math.BigDecimal;
+
 
 @Data
-@Builder
+@ToString(exclude = "order")
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 
 @Entity
 @Table(name = "order_item")
@@ -21,6 +20,7 @@ public class OrderItem {
     @Column(name = "id")
     private Long id;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
@@ -29,9 +29,7 @@ public class OrderItem {
     @JoinColumn(name = "dish_id", nullable = false)
     private Dish dish;
 
-    @Column(name = "quantity", nullable = false)
-    private Integer quantity;
+    @Column(name = "count", nullable = false)
+    private Integer count;
 
-    @Column(name = "price_per_item")
-    private BigDecimal pricePerItem;
 }
