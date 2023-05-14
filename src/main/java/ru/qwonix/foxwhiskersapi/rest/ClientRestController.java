@@ -3,12 +3,9 @@ package ru.qwonix.foxwhiskersapi.rest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+import ru.qwonix.foxwhiskersapi.dto.ClientRequestDTO;
 import ru.qwonix.foxwhiskersapi.dto.UpdateClientDTO;
 import ru.qwonix.foxwhiskersapi.entity.Client;
 import ru.qwonix.foxwhiskersapi.exception.UpdateException;
@@ -27,11 +24,10 @@ public class ClientRestController {
         this.clientService = clientService;
     }
 
-    //    @PreAuthorize("updateClientDTO.phoneNumber == authentication.principal")
+    @PreAuthorize("updateClientDTO.phoneNumber.equals(authentication.principal)")
     @PutMapping("/update")
     public ResponseEntity<Client> update(@RequestBody UpdateClientDTO updateClientDTO) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        log.info("{} - {}", authentication, authentication.getPrincipal());
+        log.info("UPDATE CLIENT request {}", updateClientDTO);
         Optional<Client> byPhoneNumber = clientService.findByPhoneNumber(updateClientDTO.getPhoneNumber());
         if (byPhoneNumber.isPresent()) {
             Client client = byPhoneNumber.get();
@@ -52,6 +48,11 @@ public class ClientRestController {
         } else {
             throw new UpdateException(HttpStatus.NOT_FOUND, "Клиента с таким номером нет");
         }
+    }
+    @PostMapping
+    public ResponseEntity<Client> one(@RequestBody ClientRequestDTO request) {
+        log.info("GET CLIENT request {}", request.getPhoneNumber());
+        return ResponseEntity.of(clientService.findByPhoneNumber(request.getPhoneNumber()));
     }
 
 }

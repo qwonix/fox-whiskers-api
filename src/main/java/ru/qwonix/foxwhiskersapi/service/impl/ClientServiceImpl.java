@@ -35,7 +35,7 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public Optional<Client> findByPhoneNumber(String phoneNumber) {
-        Optional<Client> result = clientRepository.findByEmail(phoneNumber);
+        Optional<Client> result = clientRepository.findByPhoneNumber(phoneNumber);
         log.info("IN findByUsername - client: {} found by username: {}", result, phoneNumber);
         return result;
     }
@@ -55,7 +55,7 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public boolean exists(String email) {
-        return clientRepository.existsByEmail(email);
+    public boolean exists(String phoneNumber) {
+        return clientRepository.existsByPhoneNumber(phoneNumber);
     }
 }

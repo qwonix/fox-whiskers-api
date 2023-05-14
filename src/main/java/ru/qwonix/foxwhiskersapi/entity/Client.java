@@ -1,5 +1,6 @@
 package ru.qwonix.foxwhiskersapi.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,10 +29,6 @@ public class Client implements NoPasswordAuthentication {
     @Column(name = "phone_number", nullable = false, unique = true)
     private String phoneNumber;
 
-    @Enumerated(value = EnumType.STRING)
-    @Column(name = "role")
-    private Role role;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private UserStatus status;
@@ -56,21 +53,25 @@ public class Client implements NoPasswordAuthentication {
     @Column(name = "updated")
     private LocalDateTime updated;
 
+    @JsonIgnore
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return role.getAuthorities();
+        return Role.CLIENT.getAuthorities();
     }
 
+    @JsonIgnore
     @Override
     public String getUsername() {
         return phoneNumber;
     }
 
+    @JsonIgnore
     @Override
     public boolean isCredentialsNonExpired() {
         return status.equals(UserStatus.ACTIVE);
     }
 
+    @JsonIgnore
     @Override
     public boolean isEnabled() {
         return status.equals(UserStatus.ACTIVE);

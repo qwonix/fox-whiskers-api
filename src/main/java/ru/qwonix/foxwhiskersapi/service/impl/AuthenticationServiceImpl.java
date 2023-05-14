@@ -65,9 +65,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public Boolean sendCode(String phoneNumber) {
-        clientService.save(Client.builder()
-                .phoneNumber(phoneNumber)
-                .build());
+        Optional<Client> clientOptional = clientService.findByPhoneNumber(phoneNumber);
+        if (!clientOptional.isPresent()) {
+            clientService.save(Client.builder()
+                    .phoneNumber(phoneNumber)
+                    .build());
+        }
         return authenticationRepository.sendCode(phoneNumber);
     }
 

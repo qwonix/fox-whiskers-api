@@ -36,7 +36,7 @@ public class JwtAuthenticationToken extends AbstractAuthenticationToken {
     }
 
     public static JwtAuthenticationToken authenticated(String jwtToken, String username, Collection<? extends GrantedAuthority> authorities) {
-        return new JwtAuthenticationToken(username, jwtToken, authorities);
+        return new JwtAuthenticationToken(jwtToken, username, authorities);
     }
 
     @Override
