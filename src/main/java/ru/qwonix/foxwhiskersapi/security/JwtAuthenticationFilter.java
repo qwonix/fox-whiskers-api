@@ -30,6 +30,7 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         final String token = obtainToken(request);
+        log.info("attempt authentication: {}", token);
 
         JwtAuthenticationToken authRequest = JwtAuthenticationToken.unauthenticated(token);
 
@@ -52,6 +53,7 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
         super.successfulAuthentication(request, response, chain, authResult);
+        log.info("successful authentication: {}", authResult.getPrincipal());
         chain.doFilter(request, response);
     }
 }

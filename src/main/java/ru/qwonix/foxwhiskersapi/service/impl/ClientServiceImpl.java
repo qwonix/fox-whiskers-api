@@ -28,30 +28,22 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public List<Client> getAll() {
-        List<Client> result = clientRepository.findAll();
-        log.info("IN getAll - {} users found", result.size());
-        return result;
+        return clientRepository.findAll();
     }
 
     @Override
     public Optional<Client> findByPhoneNumber(String phoneNumber) {
-        Optional<Client> result = clientRepository.findByPhoneNumber(phoneNumber);
-        log.info("IN findByUsername - client: {} found by username: {}", result, phoneNumber);
-        return result;
+        return clientRepository.findByPhoneNumber(phoneNumber);
     }
 
     @Override
     public Client findById(Long id) {
-        return clientRepository.findById(id).orElseGet(() -> {
-            log.warn("IN findById - no client found by id: {}", id);
-            return null;
-        });
+        return clientRepository.findById(id).orElse(null);
     }
 
     @Override
     public void delete(Long id) {
         clientRepository.deleteById(id);
-        log.info("IN delete - client with id: {} successfully deleted", id);
     }
 
     @Override

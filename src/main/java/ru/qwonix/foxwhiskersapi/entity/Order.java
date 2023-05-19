@@ -9,7 +9,6 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
 import javax.persistence.*;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -23,18 +22,10 @@ import java.util.UUID;
 @Table(name = "`order`")
 public class Order {
 
-    // FIXME: 23-Mar-23 remove GenerationType.SEQUENCE
-    /**
-     * Using a {@link GenerationType#SEQUENCE} strategy can cause the uniqueness of the primary key to be violated
-     * if several clients connect to the database
-     */
     @Id
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(
-            name = "UUID",
-            strategy = "org.hibernate.id.UUIDGenerator"
-    )
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", updatable = false)
+    private Long id;
 
     @ManyToOne
     @JoinColumn(name = "client_id", nullable = false)
@@ -46,6 +37,13 @@ public class Order {
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.PERSIST)
     private List<OrderItem> orderItems;
+
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "pick_up_location_id")
+    private PickUpLocation pickUpLocation;
+
+    @Enumerated(EnumType.STRING)
+    private PaymentMethod paymentMethod;
 
     @CreatedDate
     @Column(name = "created")

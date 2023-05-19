@@ -1,9 +1,9 @@
 package ru.qwonix.foxwhiskersapi.dto;
 
+
 import lombok.Data;
 
 @Data
-public class AuthenticationRequestDTO {
+public class ClientOrdersRequestDTO {
     private final String phoneNumber;
-    private final Integer code;
 }

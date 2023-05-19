@@ -1,13 +1,12 @@
 package ru.qwonix.foxwhiskersapi.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.*;
 
 import javax.persistence.*;
 
 @Data
+@ToString(exclude = "dish")
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -26,6 +25,7 @@ public class DishDetails {
     @Column(name = "measure_text", nullable = false)
     private String measureText;
 
+    @JsonIgnore
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "dish_id", nullable = false)
     private Dish dish;

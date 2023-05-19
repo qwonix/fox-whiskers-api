@@ -5,7 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import ru.qwonix.foxwhiskersapi.dto.ClientRequestDTO;
+import ru.qwonix.foxwhiskersapi.dto.ClientOrdersRequestDTO;
 import ru.qwonix.foxwhiskersapi.dto.UpdateClientDTO;
 import ru.qwonix.foxwhiskersapi.entity.Client;
 import ru.qwonix.foxwhiskersapi.exception.UpdateException;
@@ -50,7 +50,7 @@ public class ClientRestController {
         }
     }
     @PostMapping
-    public ResponseEntity<Client> one(@RequestBody ClientRequestDTO request) {
+    public ResponseEntity<Client> one(@RequestBody ClientOrdersRequestDTO request) {
         log.info("GET CLIENT request {}", request.getPhoneNumber());
         return ResponseEntity.of(clientService.findByPhoneNumber(request.getPhoneNumber()));
     }

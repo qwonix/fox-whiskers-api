@@ -9,7 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import ru.qwonix.foxwhiskersapi.dto.AuthenticationRequestDTO;
+import ru.qwonix.foxwhiskersapi.dto.ClientAuthenticationRequestDTO;
 import ru.qwonix.foxwhiskersapi.dto.AuthenticationResponseDTO;
 import ru.qwonix.foxwhiskersapi.dto.RefreshJwtRequestDTO;
 import ru.qwonix.foxwhiskersapi.dto.UpdateClientDTO;
@@ -29,22 +29,19 @@ import java.util.Optional;
 public class AuthenticationServiceImpl implements AuthenticationService {
 
     private final ClientService clientService;
-    private final PasswordEncoder passwordEncoder;
     private final AuthenticationRepository authenticationRepository;
     private final JwtAuthenticationProvider jwtAuthenticationProvider;
 
     public AuthenticationServiceImpl(ClientService clientService,
-                                     PasswordEncoder passwordEncoder,
                                      AuthenticationRepository authenticationRepository,
                                      @Lazy JwtAuthenticationProvider jwtAuthenticationProvider) {
         this.clientService = clientService;
-        this.passwordEncoder = passwordEncoder;
         this.authenticationRepository = authenticationRepository;
         this.jwtAuthenticationProvider = jwtAuthenticationProvider;
     }
 
     @Override
-    public AuthenticationResponseDTO authenticate(AuthenticationRequestDTO request) {
+    public AuthenticationResponseDTO authenticate(ClientAuthenticationRequestDTO request) {
         String phoneNumber = request.getPhoneNumber();
         Integer code = request.getCode();
 
@@ -110,13 +107,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
             Client updatedClient = clientService.save(client);
 
-            log.info("client has been successfully updated: {}", updatedClient);
             return updatedClient;
         } else {
             throw new UpdateException(HttpStatus.CONFLICT, "client with username " + request.getPhoneNumber() + " not exists");
         }
     }
-
-
 }
 

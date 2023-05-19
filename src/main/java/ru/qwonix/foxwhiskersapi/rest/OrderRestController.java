@@ -3,13 +3,17 @@ package ru.qwonix.foxwhiskersapi.rest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ru.qwonix.foxwhiskersapi.dto.OrderRequestDTO;
+import ru.qwonix.foxwhiskersapi.dto.OrderResponseDTO;
+import ru.qwonix.foxwhiskersapi.dto.OrdersDTO;
 import ru.qwonix.foxwhiskersapi.entity.Order;
+import ru.qwonix.foxwhiskersapi.entity.OrderItem;
 import ru.qwonix.foxwhiskersapi.service.OrderService;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -22,18 +26,47 @@ public class OrderRestController {
         this.orderService = orderService;
     }
 
-    @PreAuthorize("")
+
     @PostMapping
-    public ResponseEntity<List<Order>> byPhoneNumber(@RequestBody String phoneNumber) {
-        return ResponseEntity.ok(orderService.findAllByClientPhoneNumber(phoneNumber));
+    public ResponseEntity<List<OrderResponseDTO>> byPhoneNumber(@RequestBody OrdersDTO ordersDTO) {
+        log.info("GET all orders by client phone number");
+        List<Order> orders = orderService.findAllByClientPhoneNumber(ordersDTO.getPhoneNumber());
+        List<OrderResponseDTO> orderResponse = orders.stream().map(order -> {
+            BigDecimal totalPrice = BigDecimal.ZERO;
+            for (OrderItem orderItem : order.getOrderItems()) {
+                BigDecimal itemPrice = orderItem.getDish().getCurrencyPrice();
+                int itemCount = orderItem.getCount();
+                BigDecimal subtotal = itemPrice.multiply(new BigDecimal(itemCount));
+                totalPrice = totalPrice.add(subtotal);
+            }
+
+            Long id = order.getId();
+            String formattedId = String.format("%03d-%04d", id / 10000, id % 10000);
+            return OrderResponseDTO.builder()
+                    .id(formattedId)
+                    .client(order.getClient())
+                    .orderItems(order.getOrderItems())
+                    .status(order.getStatus())
+                    .pickUpLocation(order.getPickUpLocation())
+                    .paymentMethod(order.getPaymentMethod())
+                    .totalPrice(totalPrice.doubleValue())
+//                    .expectedReceiptTime(LocalDateTime.now().plusMinutes(30))
+                    .build();
+        }).collect(Collectors.toList());
+        return ResponseEntity.ok(orderResponse);
     }
 
-    @PreAuthorize("")
+
     @PutMapping
     public ResponseEntity<Order> create(@RequestBody OrderRequestDTO request) {
+        Order body = orderService.create(
+                request.getPhoneNumber(),
+                request.getOrderItems(),
+                request.getPickUpLocationId(),
+                request.getPaymentMethod());
+
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(orderService.create(request.getPhoneNumber(), request.getItems()));
+                .body(body);
     }
-
 }
