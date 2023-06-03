@@ -35,6 +35,9 @@ public class Order {
     @Column(name = "status")
     private OrderStatus status;
 
+    @Column(name = "receivingCode")
+    private String receivingCode;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.PERSIST)
     private List<OrderItem> orderItems;
 
@@ -44,6 +47,9 @@ public class Order {
 
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
+
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus paymentStatus;
 
     @CreatedDate
     @Column(name = "created")

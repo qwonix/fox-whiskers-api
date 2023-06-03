@@ -12,6 +12,8 @@ import ru.qwonix.foxwhiskersapi.entity.OrderItem;
 import ru.qwonix.foxwhiskersapi.service.OrderService;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,6 +44,7 @@ public class OrderRestController {
 
             Long id = order.getId();
             String formattedId = String.format("%03d-%04d", id / 10000, id % 10000);
+            LocalDateTime created = order.getCreated() == null ? LocalDateTime.now() : order.getCreated();
             return OrderResponseDTO.builder()
                     .id(formattedId)
                     .client(order.getClient())
@@ -50,7 +53,7 @@ public class OrderRestController {
                     .pickUpLocation(order.getPickUpLocation())
                     .paymentMethod(order.getPaymentMethod())
                     .totalPrice(totalPrice.doubleValue())
-//                    .expectedReceiptTime(LocalDateTime.now().plusMinutes(30))
+                    .expectedReceiptTime(created.plusMinutes(20).format(DateTimeFormatter.ofPattern("hh:mm")))
                     .build();
         }).collect(Collectors.toList());
         return ResponseEntity.ok(orderResponse);

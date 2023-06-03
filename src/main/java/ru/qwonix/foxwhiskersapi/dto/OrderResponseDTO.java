@@ -17,7 +17,7 @@ public class OrderResponseDTO {
     private final PickUpLocation pickUpLocation;
     private final PaymentMethod paymentMethod;
     private final Double totalPrice;
-    private final LocalDateTime expectedReceiptTime;
+    private final String expectedReceiptTime;
     private final LocalDateTime created;
 
 }

@@ -6,12 +6,18 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.UriComponentsBuilder;
 import ru.qwonix.foxwhiskersapi.dto.DishDTO;
 import ru.qwonix.foxwhiskersapi.dto.DishTypeDTO;
+import ru.qwonix.foxwhiskersapi.dto.MenuItem;
 import ru.qwonix.foxwhiskersapi.entity.Dish;
+import ru.qwonix.foxwhiskersapi.entity.DishType;
 import ru.qwonix.foxwhiskersapi.service.DishService;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -26,20 +32,32 @@ public class DishRestController {
     }
 
     @GetMapping()
-    public ResponseEntity<List<DishDTO>> all() {
-        List<Dish> all = dishService.findAll();
+    public ResponseEntity<List<MenuItem>> all(UriComponentsBuilder builder) {
+        Map<DishType, List<Dish>> dishTypeListMap = dishService.findAll()
+                .stream().collect(Collectors.groupingBy(Dish::getType));
 
-        return ResponseEntity.ok(all.stream().map(dish -> new DishDTO(
-                dish.getId(),
-                dish.getTitle(),
-                dish.getDishDetails().getMeasureText(),
-                dish.getCurrencyPrice().doubleValue(),
-                "https://sun9-67.userapi.com/vpAGHIpMA6UjSml6ahcQn0je_DiLa3GRcNT0TQ/K_w6dLtJ7CM.jpg",
-                new DishTypeDTO(
-                        dish.getType().getId(),
-                        dish.getType().getTitle()
-                )
-        )).collect(Collectors.toList()));
+        List<MenuItem> menuItems = new ArrayList<>();
+        UriComponentsBuilder path = builder.path("/api/v1/image/{imageName}");
+        dishTypeListMap.forEach((dishType, dishes) ->
+        {
+            menuItems.add(new MenuItem(dishType.getTitle(), dishes.stream().map(dish -> {
+                HashMap<String, Object> uriVariables = new HashMap<>();
+                uriVariables.put("imageName", dish.getDishDetails().getImageData().getOriginalFileName());
+                return new DishDTO(
+                        dish.getId(),
+                        dish.getTitle(),
+                        dish.getDishDetails().getMeasureText(),
+                        dish.getCurrencyPrice().doubleValue(),
+                        path.build(uriVariables).toString(),
+                        new DishTypeDTO(
+                                dish.getType().getId(),
+                                dish.getType().getTitle()
+                        )
+                );
+            }).collect(Collectors.toList())));
+        });
+
+        return ResponseEntity.ok(menuItems);
     }
 
 
