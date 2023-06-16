@@ -29,7 +29,7 @@ public class AuthenticationRepositoryImpl implements AuthenticationRepository {
 
     @Override
     public Boolean sendCode(String phoneNumber) {
-        int code = new Random().nextInt(8999) + 1000;
+        int code = 0; // new Random().nextInt(8999) + 1000;
         System.out.println("+++++++++ " + phoneNumber + " " + code + "+++++++++");
         phoneNumberCodeMap.put(phoneNumber, code);
         return null;
