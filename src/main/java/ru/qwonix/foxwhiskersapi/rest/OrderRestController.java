@@ -47,13 +47,14 @@ public class OrderRestController {
             LocalDateTime created = order.getCreated() == null ? LocalDateTime.now() : order.getCreated();
             return OrderResponseDTO.builder()
                     .id(formattedId)
+                    .qrCodeData(formattedId + "::" + order.getReceivingCode())
                     .client(order.getClient())
                     .orderItems(order.getOrderItems())
                     .status(order.getStatus())
                     .pickUpLocation(order.getPickUpLocation())
                     .paymentMethod(order.getPaymentMethod())
                     .totalPrice(totalPrice.doubleValue())
-                    .expectedReceiptTime(created.plusMinutes(20).format(DateTimeFormatter.ofPattern("hh:mm")))
+                    .expectedReceiptTime(created.plusMinutes(20).format(DateTimeFormatter.ofPattern("HH:mm")))
                     .build();
         }).collect(Collectors.toList());
         return ResponseEntity.ok(orderResponse);

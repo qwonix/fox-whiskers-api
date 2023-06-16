@@ -12,8 +12,10 @@ import ru.qwonix.foxwhiskersapi.service.ClientService;
 import ru.qwonix.foxwhiskersapi.service.OrderService;
 
 import javax.transaction.Transactional;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 @Slf4j
 @Service
@@ -49,8 +51,10 @@ public class OrderServiceImpl implements OrderService {
         Order order = Order.builder()
                 .client(client)
                 .status(OrderStatus.CREATED)
+                .created(LocalDateTime.now())
                 .paymentMethod(paymentMethod)
                 .orderItems(new ArrayList<>())
+                .receivingCode(String.valueOf(new Random().nextInt(8999) + 1000))
                 .pickUpLocation(pickUpLocation)
                 .build();
 
@@ -66,7 +70,6 @@ public class OrderServiceImpl implements OrderService {
             order.getOrderItems().add(e);
         }
 
-        Order save = orderRepository.save(order);
-        return save;
+        return orderRepository.save(order);
     }
 }

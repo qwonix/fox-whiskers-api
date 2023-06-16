@@ -11,6 +11,7 @@ import java.util.List;
 @Builder
 public class OrderResponseDTO {
     private final String id;
+    private final String qrCodeData;
     private final Client client;
     private final List<OrderItem> orderItems;
     private final OrderStatus status;
@@ -19,5 +20,4 @@ public class OrderResponseDTO {
     private final Double totalPrice;
     private final String expectedReceiptTime;
     private final LocalDateTime created;
-
 }
