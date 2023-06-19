@@ -44,7 +44,6 @@ public class ImageDataServiceImpl {
     public ImageData uploadImage(MultipartFile file) throws IOException {
         ImageData imageData = ImageData.builder()
                 .originalFileName(file.getOriginalFilename())
-                .mimeType(file.getContentType())
                 .bytes(ImageUtil.compressImage(file.getBytes())).build();
 
         return uploadImage(imageData);

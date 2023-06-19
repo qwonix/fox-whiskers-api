@@ -29,7 +29,7 @@ public class ImageData implements JsonSerializable {
     @Column(name = "original_file_name", nullable = false, unique = true)
     private String originalFileName;
 
-    @Column(name = "mime_type", nullable = false)
+    @Column(name = "mime_type")
     private String mimeType;
 
     @JsonIgnore
