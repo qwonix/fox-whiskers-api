@@ -1,9 +1,8 @@
 package ru.qwonix.foxwhiskersapi.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import lombok.*;
-
-import javax.persistence.*;
 
 @Data
 @ToString(exclude = "dish")

@@ -2,7 +2,6 @@ package ru.qwonix.foxwhiskersapi.exception.handler;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -21,7 +20,7 @@ public class AuthenticationExceptionHandler extends ResponseEntityExceptionHandl
 
     @ExceptionHandler(UpdateException.class)
     public ResponseEntity<?> handleRegistrationException(UpdateException e) {
-        return ResponseEntity.status(e.getStatus()).body(e.getReason());
+        return ResponseEntity.status(e.getStatusCode()).body(e.getReason());
     }
 
     @ExceptionHandler(UsernameNotFoundException.class)

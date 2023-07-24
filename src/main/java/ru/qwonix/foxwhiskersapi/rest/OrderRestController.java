@@ -32,7 +32,7 @@ public class OrderRestController {
     @PostMapping
     public ResponseEntity<List<OrderResponseDTO>> byPhoneNumber(@RequestBody OrdersDTO ordersDTO) {
         log.info("GET all orders by client phone number");
-        List<Order> orders = orderService.findAllByClientPhoneNumber(ordersDTO.getPhoneNumber());
+        List<Order> orders = orderService.findAllByClientPhoneNumber(ordersDTO.phoneNumber());
         List<OrderResponseDTO> orderResponse = orders.stream().map(order -> {
             BigDecimal totalPrice = BigDecimal.ZERO;
             for (OrderItem orderItem : order.getOrderItems()) {
@@ -45,17 +45,18 @@ public class OrderRestController {
             Long id = order.getId();
             String formattedId = String.format("%03d-%04d", id / 10000, id % 10000);
             LocalDateTime created = order.getCreated() == null ? LocalDateTime.now() : order.getCreated();
-            return OrderResponseDTO.builder()
-                    .id(formattedId)
-                    .qrCodeData(formattedId + "::" + order.getReceivingCode())
-                    .client(order.getClient())
-                    .orderItems(order.getOrderItems())
-                    .status(order.getStatus())
-                    .pickUpLocation(order.getPickUpLocation())
-                    .paymentMethod(order.getPaymentMethod())
-                    .totalPrice(totalPrice.doubleValue())
-                    .expectedReceiptTime(created.plusMinutes(20).format(DateTimeFormatter.ofPattern("HH:mm")))
-                    .build();
+            return new OrderResponseDTO(
+                    formattedId,
+                    formattedId + "::" + order.getReceivingCode(),
+                    order.getClient(),
+                    order.getOrderItems(),
+                    order.getStatus(),
+                    order.getPickUpLocation(),
+                    order.getPaymentMethod(),
+                    totalPrice.doubleValue(),
+                    created.plusMinutes(20).format(DateTimeFormatter.ofPattern("HH:mm")),
+                    LocalDateTime.now()
+            );
         }).collect(Collectors.toList());
         return ResponseEntity.ok(orderResponse);
     }
@@ -64,10 +65,10 @@ public class OrderRestController {
     @PutMapping
     public ResponseEntity<Order> create(@RequestBody OrderRequestDTO request) {
         Order body = orderService.create(
-                request.getPhoneNumber(),
-                request.getOrderItems(),
-                request.getPickUpLocationId(),
-                request.getPaymentMethod());
+                request.phoneNumber(),
+                request.orderItems(),
+                request.pickUpLocationId(),
+                request.paymentMethod());
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)

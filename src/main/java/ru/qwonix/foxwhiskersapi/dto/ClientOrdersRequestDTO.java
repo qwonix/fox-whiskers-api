@@ -1,9 +1,4 @@
 package ru.qwonix.foxwhiskersapi.dto;
 
-
-import lombok.Data;
-
-@Data
-public class ClientOrdersRequestDTO {
-    private final String phoneNumber;
+public record ClientOrdersRequestDTO(String phoneNumber) {
 }

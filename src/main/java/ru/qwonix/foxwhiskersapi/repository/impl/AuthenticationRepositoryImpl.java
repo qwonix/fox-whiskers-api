@@ -8,7 +8,6 @@ import ru.qwonix.foxwhiskersapi.security.CodeAuthentication;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Random;
 
 @Component
 public class AuthenticationRepositoryImpl implements AuthenticationRepository {

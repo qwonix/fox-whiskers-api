@@ -1,5 +1,6 @@
 package ru.qwonix.foxwhiskersapi.service.impl;
 
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -7,7 +8,6 @@ import ru.qwonix.foxwhiskersapi.entity.ImageData;
 import ru.qwonix.foxwhiskersapi.repository.ImageDataRepository;
 import ru.qwonix.foxwhiskersapi.util.ImageUtil;
 
-import javax.transaction.Transactional;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;

@@ -7,10 +7,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import ru.qwonix.foxwhiskersapi.dto.ClientAuthenticationRequestDTO;
 import ru.qwonix.foxwhiskersapi.dto.AuthenticationResponseDTO;
+import ru.qwonix.foxwhiskersapi.dto.ClientAuthenticationRequestDTO;
 import ru.qwonix.foxwhiskersapi.dto.RefreshJwtRequestDTO;
 import ru.qwonix.foxwhiskersapi.dto.UpdateClientDTO;
 import ru.qwonix.foxwhiskersapi.entity.Client;
@@ -42,8 +41,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public AuthenticationResponseDTO authenticate(ClientAuthenticationRequestDTO request) {
-        String phoneNumber = request.getPhoneNumber();
-        Integer code = request.getCode();
+        String phoneNumber = request.phoneNumber();
+        Integer code = request.code();
 
         Authentication authenticate = authenticationRepository.authenticate(phoneNumber, code);
 
@@ -75,7 +74,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public AuthenticationResponseDTO refresh(RefreshJwtRequestDTO request) {
         // TODO: 04-Apr-23 add refresh token saving and revoking
         try {
-            String token = request.getRefreshToken();
+            String token = request.refreshToken();
             jwtAuthenticationProvider.validateRefreshToken(token);
             String username = jwtAuthenticationProvider.getRefreshClaims(token).getSubject();
 
@@ -96,20 +95,20 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public Client update(UpdateClientDTO request) {
-        Optional<Client> optionalClient = clientService.findByPhoneNumber(request.getPhoneNumber());
+        Optional<Client> optionalClient = clientService.findByPhoneNumber(request.phoneNumber());
 
         if (optionalClient.isPresent()) {
             Client client = optionalClient.get();
 
-            client.setFirstName(request.getFirstName());
-            client.setLastName(request.getLastName());
-            client.setEmail(request.getEmail());
+            client.setFirstName(request.firstName());
+            client.setLastName(request.lastName());
+            client.setEmail(request.email());
 
             Client updatedClient = clientService.save(client);
 
             return updatedClient;
         } else {
-            throw new UpdateException(HttpStatus.CONFLICT, "client with username " + request.getPhoneNumber() + " not exists");
+            throw new UpdateException(HttpStatus.CONFLICT, "client with username " + request.phoneNumber() + " not exists");
         }
     }
 }

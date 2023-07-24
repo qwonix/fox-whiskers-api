@@ -7,9 +7,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.qwonix.foxwhiskersapi.dto.AuthenticationCodeRequestDTO;
 import ru.qwonix.foxwhiskersapi.dto.AuthenticationResponseDTO;
 import ru.qwonix.foxwhiskersapi.dto.ClientAuthenticationRequestDTO;
-import ru.qwonix.foxwhiskersapi.dto.CodeAuthenticationRequestDTO;
 import ru.qwonix.foxwhiskersapi.dto.RefreshJwtRequestDTO;
 import ru.qwonix.foxwhiskersapi.service.AuthenticationService;
 
@@ -41,9 +41,9 @@ public class AuthenticationRestControllerV1 {
     }
 
     @PostMapping("/code")
-    public ResponseEntity<Boolean> code(@RequestBody CodeAuthenticationRequestDTO request) {
-        log.info("CODE request {}", request.getPhoneNumber());
-        authenticationService.sendCode(request.getPhoneNumber());
+    public ResponseEntity<Boolean> code(@RequestBody AuthenticationCodeRequestDTO request) {
+        log.info("CODE request {}", request.phoneNumber());
+        authenticationService.sendCode(request.phoneNumber());
         return ResponseEntity.ok(true);
     }
 

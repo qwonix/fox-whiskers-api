@@ -28,12 +28,12 @@ public class ClientRestController {
     @PutMapping("/update")
     public ResponseEntity<Client> update(@RequestBody UpdateClientDTO updateClientDTO) {
         log.info("UPDATE CLIENT request {}", updateClientDTO);
-        Optional<Client> byPhoneNumber = clientService.findByPhoneNumber(updateClientDTO.getPhoneNumber());
+        Optional<Client> byPhoneNumber = clientService.findByPhoneNumber(updateClientDTO.phoneNumber());
         if (byPhoneNumber.isPresent()) {
             Client client = byPhoneNumber.get();
-            String firstName = updateClientDTO.getFirstName();
-            String lastName = updateClientDTO.getLastName();
-            String email = updateClientDTO.getEmail();
+            String firstName = updateClientDTO.firstName();
+            String lastName = updateClientDTO.lastName();
+            String email = updateClientDTO.email();
             if (firstName != null) {
                 client.setFirstName(firstName);
             }
@@ -49,10 +49,11 @@ public class ClientRestController {
             throw new UpdateException(HttpStatus.NOT_FOUND, "Клиента с таким номером нет");
         }
     }
+
     @PostMapping
     public ResponseEntity<Client> one(@RequestBody ClientOrdersRequestDTO request) {
-        log.info("GET CLIENT request {}", request.getPhoneNumber());
-        return ResponseEntity.of(clientService.findByPhoneNumber(request.getPhoneNumber()));
+        log.info("GET CLIENT request {}", request.phoneNumber());
+        return ResponseEntity.of(clientService.findByPhoneNumber(request.phoneNumber()));
     }
 
 }

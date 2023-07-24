@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.9</version>
+        <version>3.1.2</version>
         <relativePath/>
     </parent>
     <groupId>ru.qwonix</groupId>
@@ -15,7 +15,7 @@
     <description>fox-whiskers-api</description>
     <properties>
         <jjwt.version>0.11.5</jjwt.version>
-        <java.version>8</java.version>
+        <java.version>17</java.version>
     </properties>
     <dependencies>
 

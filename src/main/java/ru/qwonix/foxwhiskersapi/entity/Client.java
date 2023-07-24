@@ -1,6 +1,7 @@
 package ru.qwonix.foxwhiskersapi.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,7 +11,6 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.security.core.GrantedAuthority;
 import ru.qwonix.foxwhiskersapi.security.NoPasswordAuthentication;
 
-import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Collection;
 

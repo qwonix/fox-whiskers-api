@@ -49,10 +49,8 @@ public class DishRestController {
                         dish.getDishDetails().getMeasureText(),
                         dish.getCurrencyPrice().doubleValue(),
                         path.build(uriVariables).toString(),
-                        new DishTypeDTO(
-                                dish.getType().getId(),
-                                dish.getType().getTitle()
-                        )
+                        new DishTypeDTO(dish.getType().getId(), dish.getType().getTitle())
+
                 );
             }).collect(Collectors.toList())));
         });

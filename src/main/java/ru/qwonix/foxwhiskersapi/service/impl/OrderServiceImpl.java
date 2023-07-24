@@ -1,5 +1,6 @@
 package ru.qwonix.foxwhiskersapi.service.impl;
 
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -11,7 +12,6 @@ import ru.qwonix.foxwhiskersapi.repository.PickUpLocationsRepository;
 import ru.qwonix.foxwhiskersapi.service.ClientService;
 import ru.qwonix.foxwhiskersapi.service.OrderService;
 
-import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -60,13 +60,13 @@ public class OrderServiceImpl implements OrderService {
 
 
         for (OrderItemDTO item : items) {
-            Dish dish = dishRepository.findById(item.getDishId())
-                    .orElseThrow(() -> new IllegalArgumentException("Блюда с id " + item.getDishId() + "не существует"));
+            Dish dish = dishRepository.findById(item.dishId())
+                    .orElseThrow(() -> new IllegalArgumentException("Блюда с id " + item.dishId() + "не существует"));
 
             OrderItem e = new OrderItem();
             e.setOrder(order);
             e.setDish(dish);
-            e.setCount(item.getCount());
+            e.setCount(item.count());
             order.getOrderItems().add(e);
         }
 

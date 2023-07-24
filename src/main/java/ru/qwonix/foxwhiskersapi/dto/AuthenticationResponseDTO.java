@@ -1,9 +1,4 @@
 package ru.qwonix.foxwhiskersapi.dto;
 
-import lombok.Data;
-
-@Data
-public class AuthenticationResponseDTO {
-    private final String jwtAccessToken;
-    private final String jwtRefreshToken;
+public record AuthenticationResponseDTO(String jwtAccessToken, String jwtRefreshToken) {
 }
