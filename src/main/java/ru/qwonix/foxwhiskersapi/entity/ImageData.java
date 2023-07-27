@@ -5,36 +5,25 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializable;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
-import jakarta.persistence.*;
-import lombok.*;
+import lombok.Data;
 
 import java.io.IOException;
 
-
 @Data
-@ToString(exclude = "bytes")
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
-
-@Entity
-@Table(name = "image_data")
 public class ImageData implements JsonSerializable {
+    public ImageData(String originalFileName, String mimeType, byte[] bytes) {
+        this.originalFileName = originalFileName;
+        this.mimeType = mimeType;
+        this.bytes = bytes;
+    }
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private Long id;
 
-    @Column(name = "original_file_name", nullable = false, unique = true)
     private String originalFileName;
 
-    @Column(name = "mime_type")
     private String mimeType;
 
     @JsonIgnore
-    @Basic(fetch = FetchType.LAZY)
-    @Column(name = "bytes")
     private byte[] bytes;
 
     // json serialization into an identifying file name
