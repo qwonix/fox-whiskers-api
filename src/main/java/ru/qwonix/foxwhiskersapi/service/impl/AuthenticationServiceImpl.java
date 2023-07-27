@@ -2,7 +2,6 @@ package ru.qwonix.foxwhiskersapi.service.impl;
 
 import io.jsonwebtoken.JwtException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
@@ -16,7 +15,6 @@ import ru.qwonix.foxwhiskersapi.entity.Client;
 import ru.qwonix.foxwhiskersapi.exception.JwtAuthenticationException;
 import ru.qwonix.foxwhiskersapi.exception.UpdateException;
 import ru.qwonix.foxwhiskersapi.repository.AuthenticationRepository;
-import ru.qwonix.foxwhiskersapi.security.JwtAuthenticationProvider;
 import ru.qwonix.foxwhiskersapi.security.NoPasswordAuthentication;
 import ru.qwonix.foxwhiskersapi.service.AuthenticationService;
 import ru.qwonix.foxwhiskersapi.service.ClientService;
@@ -29,14 +27,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     private final ClientService clientService;
     private final AuthenticationRepository authenticationRepository;
-    private final JwtAuthenticationProvider jwtAuthenticationProvider;
 
     public AuthenticationServiceImpl(ClientService clientService,
-                                     AuthenticationRepository authenticationRepository,
-                                     @Lazy JwtAuthenticationProvider jwtAuthenticationProvider) {
+                                     AuthenticationRepository authenticationRepository) {
         this.clientService = clientService;
         this.authenticationRepository = authenticationRepository;
-        this.jwtAuthenticationProvider = jwtAuthenticationProvider;
     }
 
     @Override
@@ -44,15 +39,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         String phoneNumber = request.phoneNumber();
         Integer code = request.code();
 
-        Authentication authenticate = authenticationRepository.authenticate(phoneNumber, code);
+        Authentication authentication = authenticationRepository.authenticate(phoneNumber, code);
 
-        if (authenticate.isAuthenticated()) {
-//            Client client = Client.builder()
-//                    .phoneNumber(phoneNumber).build();
-//            userService.save(client);
-
-            String accessToken = jwtAuthenticationProvider.generateAccessToken(phoneNumber);
-            String refreshToken = jwtAuthenticationProvider.generateRefreshToken(phoneNumber);
+        if (authentication.isAuthenticated()) {
+            String accessToken = authenticationRepository.generateAccessToken(phoneNumber);
+            String refreshToken = authenticationRepository.generateRefreshToken(phoneNumber);
             return new AuthenticationResponseDTO(accessToken, refreshToken);
         } else {
             throw new BadCredentialsException("Invalid username/code combination");
@@ -60,56 +51,28 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public Boolean sendCode(String phoneNumber) {
-        Optional<Client> clientOptional = clientService.findByPhoneNumber(phoneNumber);
-        if (!clientOptional.isPresent()) {
-            clientService.save(Client.builder()
-                    .phoneNumber(phoneNumber)
-                    .build());
+    public void sendCode(String phoneNumber) {
+        if (!clientService.exists(phoneNumber)) {
+            clientService.save(new Client(phoneNumber));
         }
-        return authenticationRepository.sendCode(phoneNumber);
+        authenticationRepository.sendCode(phoneNumber);
     }
 
     @Override
-    public AuthenticationResponseDTO refresh(RefreshJwtRequestDTO request) {
+    public AuthenticationResponseDTO refreshTokens(RefreshJwtRequestDTO request) {
         // TODO: 04-Apr-23 add refresh token saving and revoking
+        String refreshToken = request.refreshToken();
         try {
-            String token = request.refreshToken();
-            jwtAuthenticationProvider.validateRefreshToken(token);
-            String username = jwtAuthenticationProvider.getRefreshClaims(token).getSubject();
+            String subject = authenticationRepository.getSubjectFromTokenClaims(refreshToken);
 
-            NoPasswordAuthentication client = loadUserByUsername(username);
-
-            String accessToken = jwtAuthenticationProvider.generateAccessToken(client.getUsername());
-            String refreshToken = jwtAuthenticationProvider.generateRefreshToken(client.getUsername());
-            return new AuthenticationResponseDTO(accessToken, refreshToken);
+            if (authenticationRepository.revokeRefreshToken(refreshToken)) {
+                String newAccessToken = authenticationRepository.generateAccessToken(subject);
+                String newRefreshToken = authenticationRepository.generateRefreshToken(subject);
+                return new AuthenticationResponseDTO(newAccessToken, newRefreshToken);
+            }
+            throw new JwtAuthenticationException("Can't revoke refresh token");
         } catch (JwtException | UsernameNotFoundException e) {
             throw new JwtAuthenticationException("Invalid refresh JWT token", e);
         }
     }
-
-    @Override
-    public NoPasswordAuthentication loadUserByUsername(String username) {
-        return clientService.findByPhoneNumber(username).orElseThrow(() -> new UsernameNotFoundException("client"));
-    }
-
-    @Override
-    public Client update(UpdateClientDTO request) {
-        Optional<Client> optionalClient = clientService.findByPhoneNumber(request.phoneNumber());
-
-        if (optionalClient.isPresent()) {
-            Client client = optionalClient.get();
-
-            client.setFirstName(request.firstName());
-            client.setLastName(request.lastName());
-            client.setEmail(request.email());
-
-            Client updatedClient = clientService.save(client);
-
-            return updatedClient;
-        } else {
-            throw new UpdateException(HttpStatus.CONFLICT, "client with username " + request.phoneNumber() + " not exists");
-        }
-    }
 }
-
