@@ -13,9 +13,6 @@ public interface ClientService {
 
     Optional<Client> findByPhoneNumber(String phoneNumber);
 
-    Client findById(Long id);
 
-    void delete(Long id);
-
-    boolean exists(String email);
+    boolean exists(String phoneNumber);
 }

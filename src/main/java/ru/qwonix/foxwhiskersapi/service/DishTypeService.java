@@ -7,9 +7,6 @@ import java.util.Optional;
 
 public interface DishTypeService {
 
-    void save(List<DishType> dishType);
-
     List<DishType> findAll();
 
-    Optional<DishType> findById(Long id);
 }
