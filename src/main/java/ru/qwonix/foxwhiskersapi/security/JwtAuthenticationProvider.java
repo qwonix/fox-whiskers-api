@@ -29,20 +29,20 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
     private final Key jwtSecretRefresh;
 
     @Setter
-    private Duration accessExpiration = Duration.ofDays(1);
+    private Duration accessTtl = Duration.ofDays(1);
 
     @Setter
-    private Duration refreshExpiration = Duration.ofDays(30);
+    private Duration refreshTtl = Duration.ofDays(30);
 
     public JwtAuthenticationProvider(Key jwtSecretAccess, Key jwtSecretRefresh) {
         this.jwtSecretAccess = jwtSecretAccess;
         this.jwtSecretRefresh = jwtSecretRefresh;
     }
 
-    public JwtAuthenticationProvider(Key jwtSecretAccess, Key jwtSecretRefresh, Duration accessExpiration, Duration refreshExpiration) {
+    public JwtAuthenticationProvider(Key jwtSecretAccess, Key jwtSecretRefresh, Duration accessTtl, Duration refreshTtl) {
         this(jwtSecretAccess, jwtSecretRefresh);
-        this.setAccessExpiration(accessExpiration);
-        this.setRefreshExpiration(refreshExpiration);
+        this.setAccessTtl(accessTtl);
+        this.setRefreshTtl(refreshTtl);
     }
 
     public JwtAuthenticationProvider(String jwtSecretAccess, String jwtSecretRefresh) {
@@ -53,8 +53,8 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
         this(Keys.secretKeyFor(SignatureAlgorithm.HS256), Keys.secretKeyFor(SignatureAlgorithm.HS256));
     }
 
-    public JwtAuthenticationProvider(Duration accessExpiration, Duration refreshExpiration) {
-        this(Keys.secretKeyFor(SignatureAlgorithm.HS256), Keys.secretKeyFor(SignatureAlgorithm.HS256), accessExpiration, refreshExpiration);
+    public JwtAuthenticationProvider(Duration accessTtl, Duration refreshTtl) {
+        this(Keys.secretKeyFor(SignatureAlgorithm.HS256), Keys.secretKeyFor(SignatureAlgorithm.HS256), accessTtl, refreshTtl);
     }
 
     @Override
@@ -85,7 +85,7 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
     public String generateAccessToken(String subject, String role) {
         final LocalDateTime now = LocalDateTime.now();
         final Instant accessExpirationInstant =
-                now.plus(accessExpiration).atZone(ZoneId.systemDefault()).toInstant();
+                now.plus(accessTtl).atZone(ZoneId.systemDefault()).toInstant();
 
         return Jwts.builder()
                 .setSubject(subject)
@@ -98,7 +98,7 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
     public String generateRefreshToken(String subject) {
         final LocalDateTime now = LocalDateTime.now();
         final Instant refreshExpirationInstant =
-                now.plus(refreshExpiration).atZone(ZoneId.systemDefault()).toInstant();
+                now.plus(refreshTtl).atZone(ZoneId.systemDefault()).toInstant();
 
         return Jwts.builder()
                 .setSubject(subject)

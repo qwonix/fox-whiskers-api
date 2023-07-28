@@ -17,7 +17,6 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import ru.qwonix.foxwhiskersapi.security.JwtAuthenticationFilter;
 import ru.qwonix.foxwhiskersapi.security.JwtAuthenticationProvider;
-import ru.qwonix.foxwhiskersapi.service.ClientService;
 
 import java.time.Duration;
 
@@ -53,9 +52,6 @@ public class SecurityConfig {
                 // custom JWT based security filter
                 .authenticationProvider(jwtAuthenticationProvider);
 
-        // disable page caching
-        http.headers().cacheControl();
-
 
         return http.build();
     }
@@ -75,6 +71,7 @@ public class SecurityConfig {
                         new AntPathRequestMatcher("/api/v1/auth/**"),
                         new AntPathRequestMatcher("/api/v1/dish/**"),
                         new AntPathRequestMatcher("/api/v1/location/**"),
+                        new AntPathRequestMatcher("/api/v1/client/**"),
                         new AntPathRequestMatcher("/api/v1/image/**")
                 )
         );
@@ -82,13 +79,13 @@ public class SecurityConfig {
 
     @Bean
     public JwtAuthenticationProvider jwtAuthenticationProvider(
-            @Value("${jwt.secret.access}") String jwtAccessSecret,
-            @Value("${jwt.secret.refresh}") String jwtRefreshSecret,
-            @Value("${jwt.expiration.access}") Duration accessExpiration,
-            @Value("${jwt.expiration.refresh}") Duration refreshExpiration) {
+            @Value("${jwt.key.access}") String jwtAccessSecret,
+            @Value("${jwt.key.refresh}") String jwtRefreshSecret,
+            @Value("${jwt.ttl.access}") Duration accessTtl,
+            @Value("${jwt.ttl.refresh}") Duration refreshTtl) {
         JwtAuthenticationProvider jwtAuthenticationProvider = new JwtAuthenticationProvider(jwtAccessSecret, jwtRefreshSecret);
-        jwtAuthenticationProvider.setAccessExpiration(accessExpiration);
-        jwtAuthenticationProvider.setRefreshExpiration(refreshExpiration);
+        jwtAuthenticationProvider.setAccessTtl(accessTtl);
+        jwtAuthenticationProvider.setRefreshTtl(refreshTtl);
         return jwtAuthenticationProvider;
     }
 }

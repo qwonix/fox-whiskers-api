@@ -1,0 +1,13 @@
+spring:
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+
+jwt:
+  key:
+    access: <>
+    refresh: <>
+  ttl:
+    access: 1h
+    refresh: 5h
