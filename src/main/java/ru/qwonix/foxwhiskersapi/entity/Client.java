@@ -7,10 +7,11 @@ import ru.qwonix.foxwhiskersapi.security.NoPasswordAuthentication;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.UUID;
 
 @Data
 public class Client implements NoPasswordAuthentication {
-    private Long id;
+    private UUID id;
     private String phoneNumber;
     private UserStatus status;
     private String firstName;

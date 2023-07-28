@@ -1,12 +1,14 @@
 package ru.qwonix.foxwhiskersapi.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+
 import ru.qwonix.foxwhiskersapi.entity.Client;
 
 import java.util.Optional;
+import java.util.UUID;
 
-public interface ClientRepository extends JpaRepository<Client, Long> {
+public interface ClientRepository extends CrudRepository<Client, UUID> {
     Optional<Client> findByPhoneNumber(String phoneNumber);
 
     boolean existsByPhoneNumber(String phoneNumber);
+
 }
