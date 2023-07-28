@@ -17,7 +17,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import ru.qwonix.foxwhiskersapi.security.JwtAuthenticationFilter;
 import ru.qwonix.foxwhiskersapi.security.JwtAuthenticationProvider;
-import ru.qwonix.foxwhiskersapi.service.AuthenticationService;
+import ru.qwonix.foxwhiskersapi.service.ClientService;
 
 import java.time.Duration;
 
@@ -81,13 +81,12 @@ public class SecurityConfig {
     }
 
     @Bean
-    public JwtAuthenticationProvider jwtAuthenticationProvider
-            (AuthenticationService authenticationService,
-             @Value("${jwt.secret.access}") String jwtAccessSecret,
-             @Value("${jwt.secret.refresh}") String jwtRefreshSecret,
-             @Value("${jwt.expiration.access}") Duration accessExpiration,
-             @Value("${jwt.expiration.refresh}") Duration refreshExpiration) {
-        JwtAuthenticationProvider jwtAuthenticationProvider = new JwtAuthenticationProvider(authenticationService, jwtAccessSecret, jwtRefreshSecret);
+    public JwtAuthenticationProvider jwtAuthenticationProvider(
+            @Value("${jwt.secret.access}") String jwtAccessSecret,
+            @Value("${jwt.secret.refresh}") String jwtRefreshSecret,
+            @Value("${jwt.expiration.access}") Duration accessExpiration,
+            @Value("${jwt.expiration.refresh}") Duration refreshExpiration) {
+        JwtAuthenticationProvider jwtAuthenticationProvider = new JwtAuthenticationProvider(jwtAccessSecret, jwtRefreshSecret);
         jwtAuthenticationProvider.setAccessExpiration(accessExpiration);
         jwtAuthenticationProvider.setRefreshExpiration(refreshExpiration);
         return jwtAuthenticationProvider;
