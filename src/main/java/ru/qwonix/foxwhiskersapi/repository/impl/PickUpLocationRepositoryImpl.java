@@ -6,23 +6,39 @@ import org.jooq.impl.DSL;
 import org.springframework.stereotype.Repository;
 import ru.qwonix.foxwhiskersapi.domain.Tables;
 import ru.qwonix.foxwhiskersapi.entity.PickUpLocation;
-import ru.qwonix.foxwhiskersapi.repository.PickUpLocationsRepository;
+import ru.qwonix.foxwhiskersapi.repository.PickUpLocationRepository;
 
 import java.util.List;
 import java.util.Optional;
 
+import static org.jooq.impl.DSL.*;
+
 @Repository
-public class PickUpLocationsRepositoryImpl implements PickUpLocationsRepository {
+public class PickUpLocationRepositoryImpl implements PickUpLocationRepository {
     private final DSLContext dsl;
 
-    public PickUpLocationsRepositoryImpl(DSLContext dsl) {
+    public PickUpLocationRepositoryImpl(DSLContext dsl) {
         this.dsl = dsl;
     }
 
     @Override
-    public Optional<PickUpLocation> findFirstByOrderByPriorityDesc() {
+    public Optional<PickUpLocation> findByPriority(Integer priority) {
         return dsl.selectFrom(Tables.PICK_UP_LOCATION)
-                .orderBy(Tables.PICK_UP_LOCATION.PRIORITY)
+                .where(Tables.PICK_UP_LOCATION.PRIORITY.eq(priority))
+                .fetchOptionalInto(PickUpLocation.class);
+    }
+
+    @Override
+    public Optional<PickUpLocation> findMaxPriority() {
+        return dsl.selectFrom(Tables.PICK_UP_LOCATION)
+                .where(Tables.PICK_UP_LOCATION.PRIORITY.eq(dsl.select(max(Tables.PICK_UP_LOCATION.PRIORITY)).from(Tables.PICK_UP_LOCATION)))
+                .fetchOptionalInto(PickUpLocation.class);
+    }
+
+    @Override
+    public Optional<PickUpLocation> findMinPriority() {
+        return dsl.selectFrom(Tables.PICK_UP_LOCATION)
+                .where(Tables.PICK_UP_LOCATION.PRIORITY.eq(dsl.select(min(Tables.PICK_UP_LOCATION.PRIORITY)).from(Tables.PICK_UP_LOCATION)))
                 .fetchOptionalInto(PickUpLocation.class);
     }
 
@@ -71,4 +87,6 @@ public class PickUpLocationsRepositoryImpl implements PickUpLocationsRepository 
                 .where(Tables.PICK_UP_LOCATION.ID.eq(id))
                 .execute() == SUCCESS_CODE;
     }
+
+
 }

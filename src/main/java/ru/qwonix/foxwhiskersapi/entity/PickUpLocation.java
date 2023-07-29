@@ -1,5 +1,10 @@
 package ru.qwonix.foxwhiskersapi.entity;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor
+@Data
 public class PickUpLocation {
 
     private Long id;
