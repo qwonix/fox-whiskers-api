@@ -1,7 +1,6 @@
 package ru.qwonix.foxwhiskersapi.rest;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -9,10 +8,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 import ru.qwonix.foxwhiskersapi.entity.ImageData;
-import ru.qwonix.foxwhiskersapi.service.impl.ImageDataServiceImpl;
+import ru.qwonix.foxwhiskersapi.service.ImageDataService;
 
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -20,22 +19,22 @@ import java.util.Optional;
 @RequestMapping("/api/v1/image")
 public class ImageRestController {
 
-    private final ImageDataServiceImpl imageDataServiceImpl;
+    private final ImageDataService imageDataService;
 
-    @Autowired
-    public ImageRestController(ImageDataServiceImpl imageDataServiceImpl) {
-        this.imageDataServiceImpl = imageDataServiceImpl;
+    public ImageRestController(ImageDataService imageDataService) {
+        this.imageDataService = imageDataService;
     }
+
 
     @GetMapping("/{name}")
     public ResponseEntity<byte[]> getByName(@PathVariable("name") String name) {
         log.info("GET request name {}", name);
-        Optional<ImageData> image = imageDataServiceImpl.getDecompressedImageByOriginalFileName(name);
+        Optional<ImageData> image = imageDataService.getImageByImageName(name);
 
         if (image.isPresent()) {
             ImageData imageData = image.get();
             return ResponseEntity.ok()
-                    .contentType(MediaType.valueOf(imageData.getMimeType()))
+                    .contentType(MediaType.parseMediaType(imageData.getMimeType()))
                     .body(imageData.getBytes());
 
         } else {
@@ -44,17 +43,13 @@ public class ImageRestController {
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<?> upload(@RequestParam("image") MultipartFile file,
+    public ResponseEntity<?> upload(@RequestParam("image") MultipartFile image,
                                     UriComponentsBuilder uriComponentsBuilder) throws IOException {
-        log.info("UPLOAD request {}", file.getOriginalFilename());
-
-        ImageData imageData = imageDataServiceImpl.uploadImage(file);
+        ImageData imageData = imageDataService.uploadImage(image);
 
         return ResponseEntity.created(uriComponentsBuilder
-                .path("/api/v1/image/{name}")
-                .build(new HashMap<String, String>() {{
-                    put("name", imageData.getOriginalFileName());
-                }})
-        ).body(null);
+                        .path("/api/v1/image/{name}")
+                        .build(Map.of("name", imageData.getFileName())))
+                .body(null);
     }
 }

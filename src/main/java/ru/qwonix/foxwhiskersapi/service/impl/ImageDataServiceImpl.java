@@ -1,20 +1,19 @@
 package ru.qwonix.foxwhiskersapi.service.impl;
 
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ru.qwonix.foxwhiskersapi.entity.ImageData;
 import ru.qwonix.foxwhiskersapi.repository.ImageDataRepository;
+import ru.qwonix.foxwhiskersapi.service.ImageDataService;
 import ru.qwonix.foxwhiskersapi.util.ImageUtil;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.net.URLConnection;
 import java.util.Optional;
 
 @Service
-public class ImageDataServiceImpl {
+public class ImageDataServiceImpl implements ImageDataService {
 
     private final ImageDataRepository imageDataRepository;
 
@@ -23,39 +22,39 @@ public class ImageDataServiceImpl {
         this.imageDataRepository = imageDataRepository;
     }
 
-    @Transactional
-    public ImageData uploadImage(ImageData imageData) {
-        return imageDataRepository.save(imageData);
-    }
 
-    @Transactional
-    public ImageData uploadImage(Path path) throws IOException {
-        String fileName = path.getFileName().toString();
-        ImageData imageData = ImageData.builder()
-                .originalFileName(fileName)
-                .mimeType(fileName.substring(fileName.lastIndexOf(".") + 1))
-                .bytes(ImageUtil.compressImage(Files.readAllBytes(path)))
-                .build();
-
-        return uploadImage(imageData);
-    }
-
-    @Transactional
+    @Override
     public ImageData uploadImage(MultipartFile file) throws IOException {
-        ImageData imageData = ImageData.builder()
-                .originalFileName(file.getOriginalFilename())
-                .bytes(ImageUtil.compressImage(file.getBytes())).build();
+        var originalFilename = file.getOriginalFilename();
+        var mimeType = URLConnection.guessContentTypeFromName(originalFilename);
 
-        return uploadImage(imageData);
+        var imageData = new ImageData();
+        imageData.setBytes(ImageUtil.compressImage(file.getBytes()));
+        imageData.setMimeType(mimeType);
+
+        // FIXME: 30.07.2023 not sure that's the good way to fix the duplicate name problem
+        var filename = originalFilename.substring(0, originalFilename.lastIndexOf("."));
+        while (imageDataRepository.exists(filename)) {
+            filename = filename + " - copy";
+        }
+
+        imageData.setFileName(filename);
+        return imageDataRepository.insert(imageData);
     }
 
-    @Transactional
-    public Optional<ImageData> getImageByOriginalFileName(String originalFileName) {
-        return imageDataRepository.findByOriginalFileName(originalFileName);
+    @Override
+    public Optional<ImageData> getImageByImageName(String imageName) {
+        Optional<ImageData> optImageData = imageDataRepository.findByImageName(imageName);
+        if (optImageData.isPresent()) {
+            ImageData imageData = optImageData.get();
+            byte[] bytes = ImageUtil.decompressImage(imageData.getBytes());
+            imageData.setBytes(bytes);
+        }
+        return optImageData;
     }
 
-    public Optional<ImageData> getDecompressedImageByOriginalFileName(String originalFileName) {
-        Optional<ImageData> optImageData = getImageByOriginalFileName(originalFileName);
+    public Optional<ImageData> getDecompressedImageByImageName(String imageName) {
+        Optional<ImageData> optImageData = getImageByImageName(imageName);
         if (optImageData.isPresent()) {
             ImageData imageData = optImageData.get();
             byte[] bytes = ImageUtil.decompressImage(imageData.getBytes());

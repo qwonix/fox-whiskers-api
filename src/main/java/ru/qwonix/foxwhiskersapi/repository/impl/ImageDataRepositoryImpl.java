@@ -5,7 +5,6 @@ import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 import org.springframework.stereotype.Repository;
 import ru.qwonix.foxwhiskersapi.domain.Tables;
-import ru.qwonix.foxwhiskersapi.entity.Dish;
 import ru.qwonix.foxwhiskersapi.entity.ImageData;
 import ru.qwonix.foxwhiskersapi.repository.ImageDataRepository;
 
@@ -22,10 +21,18 @@ public class ImageDataRepositoryImpl implements ImageDataRepository {
     }
 
     @Override
-    public Optional<ImageData> findByOriginalFileName(String originalFileName) {
+    public Optional<ImageData> findByImageName(String imageName) {
         return dsl.selectFrom(Tables.IMAGE_DATA)
-                .where(Tables.IMAGE_DATA.ORIGINAL_FILE_NAME.eq(originalFileName))
+                .where(Tables.IMAGE_DATA.FILE_NAME.eq(imageName))
                 .fetchOptionalInto(ImageData.class);
+    }
+
+    @Override
+    public Boolean exists(String imageName) {
+        return dsl.fetchExists(
+                dsl.selectFrom(Tables.IMAGE_DATA)
+                        .where(Tables.IMAGE_DATA.FILE_NAME.eq(imageName)));
+
     }
 
     @Override
@@ -41,16 +48,16 @@ public class ImageDataRepositoryImpl implements ImageDataRepository {
     public ImageData update(ImageData imageData) {
         return dsl.update(Tables.IMAGE_DATA)
                 .set(dsl.newRecord(Tables.IMAGE_DATA, imageData))
-                .where(Tables.IMAGE_DATA.ID.eq(imageData.getId()))
+                .where(Tables.IMAGE_DATA.FILE_NAME.eq(imageData.getFileName()))
                 .returning()
                 .fetchOne()
                 .into(ImageData.class);
     }
 
     @Override
-    public ImageData find(Long id) {
+    public ImageData find(String imageName) {
         return dsl.selectFrom(Tables.IMAGE_DATA)
-                .where(Tables.IMAGE_DATA.ID.eq(id))
+                .where(Tables.IMAGE_DATA.FILE_NAME.eq(imageName))
                 .fetchAny()
                 .into(ImageData.class);
     }
@@ -69,9 +76,9 @@ public class ImageDataRepositoryImpl implements ImageDataRepository {
     }
 
     @Override
-    public Boolean delete(Long id) {
+    public Boolean delete(String imageName) {
         return dsl.delete(Tables.IMAGE_DATA)
-                .where(Tables.IMAGE_DATA.ID.eq(id))
+                .where(Tables.IMAGE_DATA.FILE_NAME.eq(imageName))
                 .execute() == SUCCESS_CODE;
     }
 }
