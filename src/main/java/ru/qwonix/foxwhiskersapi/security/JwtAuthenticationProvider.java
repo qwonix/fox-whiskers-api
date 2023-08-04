@@ -83,9 +83,8 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
     }
 
     public String generateAccessToken(String subject, String role) {
-        final LocalDateTime now = LocalDateTime.now();
         final Instant accessExpirationInstant =
-                now.plus(accessTtl).atZone(ZoneId.systemDefault()).toInstant();
+                LocalDateTime.now().plus(accessTtl).atZone(ZoneId.systemDefault()).toInstant();
 
         return Jwts.builder()
                 .setSubject(subject)
@@ -96,9 +95,8 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
     }
 
     public String generateRefreshToken(String subject) {
-        final LocalDateTime now = LocalDateTime.now();
         final Instant refreshExpirationInstant =
-                now.plus(refreshTtl).atZone(ZoneId.systemDefault()).toInstant();
+                LocalDateTime.now().plus(refreshTtl).atZone(ZoneId.systemDefault()).toInstant();
 
         return Jwts.builder()
                 .setSubject(subject)

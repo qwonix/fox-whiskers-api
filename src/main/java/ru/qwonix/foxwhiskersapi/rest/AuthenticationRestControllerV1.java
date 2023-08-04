@@ -24,7 +24,7 @@ public class AuthenticationRestControllerV1 {
         this.authenticationService = authenticationService;
     }
 
-    @PostMapping("/authenticate")
+    @PostMapping
     public ResponseEntity<AuthenticationResponseDTO> authenticate(
             @RequestBody ClientAuthenticationRequestDTO request
     ) {
@@ -37,7 +37,7 @@ public class AuthenticationRestControllerV1 {
             @RequestBody RefreshJwtRequestDTO request
     ) {
         log.info("REFRESH request {}", request);
-        return ResponseEntity.ok(authenticationService.refresh(request));
+        return ResponseEntity.ok(authenticationService.refreshTokens(request));
     }
 
     @PostMapping("/code")

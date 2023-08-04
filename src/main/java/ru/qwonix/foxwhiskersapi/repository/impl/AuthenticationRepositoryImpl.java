@@ -1,36 +1,71 @@
 package ru.qwonix.foxwhiskersapi.repository.impl;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
+import ru.qwonix.foxwhiskersapi.entity.Role;
 import ru.qwonix.foxwhiskersapi.repository.AuthenticationRepository;
+import ru.qwonix.foxwhiskersapi.repository.RedisRepository;
 import ru.qwonix.foxwhiskersapi.security.CodeAuthentication;
+import ru.qwonix.foxwhiskersapi.security.JwtAuthenticationProvider;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.time.Duration;
+import java.util.random.RandomGenerator;
 
-@Component
+@Repository
 public class AuthenticationRepositoryImpl implements AuthenticationRepository {
-    private static final Map<String, Integer> phoneNumberCodeMap = new HashMap<>();
+
+    private final JwtAuthenticationProvider jwtAuthenticationProvider;
+
+    private final Duration authenticationCodeTtl;
+    private final Duration refreshTokenTtl;
+
+    private final RedisRepository redisRepository;
+
+
+    public AuthenticationRepositoryImpl(JwtAuthenticationProvider jwtAuthenticationProvider,
+                                        @Value("${authentication.code.ttl}") Duration authenticationCodeTtl,
+                                        @Value("${jwt.ttl.refresh}") Duration refreshTtl, RedisRepository redisRepository) {
+        this.jwtAuthenticationProvider = jwtAuthenticationProvider;
+        this.authenticationCodeTtl = authenticationCodeTtl;
+        this.refreshTokenTtl = refreshTtl;
+        this.redisRepository = redisRepository;
+    }
 
     @Override
-    public Authentication authenticate(String phoneNumber, Integer code) {
-        boolean contains = false;
-
-        for (Map.Entry<String, Integer> entry : phoneNumberCodeMap.entrySet()) {
-            if (Objects.equals(entry.getKey(), phoneNumber) && Objects.equals(entry.getValue(), code)) {
-                contains = true;
-                return CodeAuthentication.authenticated(phoneNumber);
-            }
-        }
-        return CodeAuthentication.unauthenticated();
+    public Authentication authenticate(String phoneNumber, String code) {
+        if (redisRepository.hasKeyAndValue(phoneNumber, code)) {
+            return CodeAuthentication.authenticated(phoneNumber);
+        } else return CodeAuthentication.unauthenticated();
     }
 
     @Override
     public Boolean sendCode(String phoneNumber) {
-        int code = 0; // new Random().nextInt(8999) + 1000;
-        System.out.println("+++++++++ " + phoneNumber + " " + code + "+++++++++");
-        phoneNumberCodeMap.put(phoneNumber, code);
-        return null;
+        RandomGenerator gen = RandomGenerator.of("L128X256MixRandom");
+        String code = String.valueOf(gen.nextInt(0000, 10000));
+        redisRepository.add(phoneNumber, code, authenticationCodeTtl);
+        return true;
+    }
+
+    @Override
+    public String generateAccessToken(String phoneNumber, Role role) {
+        return jwtAuthenticationProvider.generateAccessToken(phoneNumber, String.valueOf(role));
+    }
+
+    @Override
+    public String generateRefreshToken(String phoneNumber) {
+        String refreshToken = jwtAuthenticationProvider.generateRefreshToken(phoneNumber);
+        redisRepository.add(refreshToken, phoneNumber, refreshTokenTtl);
+        return refreshToken;
+    }
+
+    @Override
+    public String getSubjectFromRefreshTokenClaims(String refreshToken) {
+        return jwtAuthenticationProvider.getRefreshClaims(refreshToken).getSubject();
+    }
+
+    @Override
+    public Boolean revokeRefreshToken(String refreshToken) {
+        return redisRepository.delete(refreshToken);
     }
 }
