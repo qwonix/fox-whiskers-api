@@ -1,31 +1,23 @@
-# Fox Whiskers (Spring REST API)
+[![Project Status](https://img.shields.io/badge/status-IN%20PROGRESS-yellow.svg)](https://example.com)
+# Fox Whiskers (IN PROGRESS)
 
-Серверное приложение, разработанное в дополнение к [дипломной работе](https://github.com/qwonix/fox-whiskers), защищённой на оценку отлично. Приложение позволяет работать 
-с меню пиццерии, пунктами выдачи, оформлением заказов и профилем пользователя. Все действия проводятся благодаря HTTP запросам 
+Spring REST API developed in addition to [thesis](https://github.com/qwonix/fox-whiskers), defended for a grade of excellent. The application allows you to work 
+with pizzeria menu, delivery points, ordering and user profile.
 
-## Технологии
-* Java 8
-* [Spring REST, JPA, Security](https://spring.io/)
+## Technologies
+* Java 17
+* [Spring REST, Web, Security](https://spring.io/)
+* [jOOQ](https://www.jooq.org/)
 * [JSON Web Token](https://jwt.io/)
+* [Flyway](https://flywaydb.org/)
 * [PostgreSQL](https://www.postgresql.org/)
+* [Redis](https://redis.io/)
+* [Testcontainers](https://testcontainers.com/)
 
-## Загрузка приложения
+## Download the application
 
-Последнюю версию приложения можно скачать на [странице релизов](https://github.com/qwonix/fox-whiskers-api/releases).
+The latest version of the application can be downloaded from [release page](https://github.com/qwonix/fox-whiskers-api/releases).
 
-### Загрузка исходников сервера
+## Usage
 
-```shell
-git clone https://github.com/qwonix/fox-whiskers-api.git
-cd fox-whiskers-api
-```
-
-### Запуск сервера
-
-```shell
-mvn spring-boot:run -Dspring-boot.run.arguments=--server.port=8085
-```
-
-## Использование
-
-Для работы приложения необходимо указать данные для подключения к базе данных в `application.properties`.
+To run the application, you must specify the database connection data in `application.properties`.
