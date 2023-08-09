@@ -23,7 +23,7 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public Client save(Client client) {
-        return clientRepository.save(client);
+        return clientRepository.insert(client);
     }
 
     @Override
@@ -37,17 +37,12 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public Client findById(Long id) {
-        return clientRepository.findById(id).orElse(null);
-    }
-
-    @Override
-    public void delete(Long id) {
-        clientRepository.deleteById(id);
-    }
-
-    @Override
     public boolean exists(String phoneNumber) {
         return clientRepository.existsByPhoneNumber(phoneNumber);
+    }
+
+    @Override
+    public Client update(Client client) {
+        return clientRepository.update(client);
     }
 }

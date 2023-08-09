@@ -35,6 +35,7 @@ public class ClientRepositoryImpl implements ClientRepository {
 
     @Override
     public Client insert(Client client) {
+        client.setId(UUID.randomUUID());
         return dsl.insertInto(Tables.CLIENT)
                 .set(dsl.newRecord(Tables.CLIENT, client))
                 .returning()

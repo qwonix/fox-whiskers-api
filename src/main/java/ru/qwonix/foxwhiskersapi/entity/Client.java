@@ -1,7 +1,9 @@
 package ru.qwonix.foxwhiskersapi.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import ru.qwonix.foxwhiskersapi.security.NoPasswordAuthentication;
 
@@ -9,6 +11,8 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.UUID;
 
+@AllArgsConstructor
+@NoArgsConstructor
 @Data
 public class Client implements NoPasswordAuthentication {
     private UUID id;
