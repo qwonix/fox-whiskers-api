@@ -15,4 +15,6 @@ public interface ClientService {
 
 
     boolean exists(String phoneNumber);
+
+    Client update(Client client);
 }

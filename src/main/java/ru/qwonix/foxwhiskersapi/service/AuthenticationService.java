@@ -1,14 +1,25 @@
 package ru.qwonix.foxwhiskersapi.service;
 
-import ru.qwonix.foxwhiskersapi.dto.AuthenticationResponseDTO;
-import ru.qwonix.foxwhiskersapi.dto.ClientAuthenticationRequestDTO;
-import ru.qwonix.foxwhiskersapi.dto.RefreshJwtRequestDTO;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
+
+import java.util.List;
 
 public interface AuthenticationService {
 
-    AuthenticationResponseDTO authenticate(ClientAuthenticationRequestDTO request);
-
-    AuthenticationResponseDTO refreshTokens(RefreshJwtRequestDTO request);
+    boolean authenticate(String username, String code);
 
     void sendCode(String phoneNumber);
+
+    String generateAccessToken(String subject, List<String> authorities);
+
+    String generateRefreshToken(String subject);
+
+    Claims getAccessClaims(String token) throws
+            ExpiredJwtException, UnsupportedJwtException, MalformedJwtException, io.jsonwebtoken.security.SignatureException, IllegalArgumentException;
+
+    Claims getRefreshClaims(String token) throws
+            ExpiredJwtException, UnsupportedJwtException, MalformedJwtException, io.jsonwebtoken.security.SignatureException, IllegalArgumentException;
 }

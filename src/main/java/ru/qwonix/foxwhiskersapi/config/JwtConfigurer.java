@@ -1,64 +1,54 @@
 package ru.qwonix.foxwhiskersapi.config;
 
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.web.AuthenticationEntryPoint;
-import org.springframework.security.web.authentication.AuthenticationEntryPointFailureHandler;
+import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
+import org.springframework.security.web.access.ExceptionTranslationFilter;
 import org.springframework.security.web.authentication.AuthenticationFilter;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-import ru.qwonix.foxwhiskersapi.security.JwtAuthenticationConverter;
-import ru.qwonix.foxwhiskersapi.security.JwtAuthenticationProvider;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider;
+import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
+import ru.qwonix.foxwhiskersapi.security.CodeVerificationAuthenticationUserDetailsService;
+import ru.qwonix.foxwhiskersapi.security.filter.CodeVerificationAuthenticationConverter;
+import ru.qwonix.foxwhiskersapi.security.filter.RequestTokensFilter;
+import ru.qwonix.foxwhiskersapi.service.AuthenticationService;
 
-import java.time.Duration;
-
+@RequiredArgsConstructor
 public class JwtConfigurer extends AbstractHttpConfigurer<JwtConfigurer, HttpSecurity> {
 
-    private final JwtAuthenticationProvider authenticationProvider;
-
-    public JwtConfigurer(JwtAuthenticationProvider authenticationProvider) {
-        this.authenticationProvider = authenticationProvider;
-    }
-
-    public JwtConfigurer setAccessTtl(Duration accessTtl) {
-        this.authenticationProvider.setAccessTtl(accessTtl);
-        return this;
-    }
-
-    public JwtConfigurer setRefreshTtl(Duration refreshTtl) {
-        this.authenticationProvider.setRefreshTtl(refreshTtl);
-        return this;
-    }
-
-    private AuthenticationEntryPoint authenticationEntryPoint = (request, response, authException) -> {
-        response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "jwt");
-        response.sendError(HttpStatus.UNAUTHORIZED.value());
-    };
-
-    public JwtConfigurer setAuthenticationEntryPoint(AuthenticationEntryPoint authenticationEntryPoint) {
-        this.authenticationEntryPoint = authenticationEntryPoint;
-        return this;
-    }
+    private RequestMatcher requestMatcher = new AntPathRequestMatcher("/api/v1/auth", HttpMethod.POST.name());
+    private final AuthenticationService authenticationService;
 
     @Override
     public void init(HttpSecurity builder) throws Exception {
-        builder.exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(this.authenticationEntryPoint));
+        var csrfConfigurer = builder.getConfigurer(CsrfConfigurer.class);
+        if (csrfConfigurer != null) {
+            csrfConfigurer.ignoringRequestMatchers(requestMatcher);
+        }
     }
 
     @Override
-    public void configure(HttpSecurity builder) {
+    public void configure(HttpSecurity builder) throws Exception {
         final var authenticationManager =
                 builder.getSharedObject(AuthenticationManager.class);
+        var codeAuthenticationFilter = new AuthenticationFilter(authenticationManager,
+                new CodeVerificationAuthenticationConverter(authenticationService));
+        codeAuthenticationFilter.setSuccessHandler((request, response, authentication) -> CsrfFilter.skipRequest(request));
+        codeAuthenticationFilter.setRequestMatcher(requestMatcher);
 
-        final var authenticationFilter = new AuthenticationFilter(authenticationManager, new JwtAuthenticationConverter());
-        authenticationFilter.setSuccessHandler((request, response, authentication) -> { });
-        authenticationFilter.setFailureHandler((request, response, exception) -> new AuthenticationEntryPointFailureHandler(this.authenticationEntryPoint));
-
-        builder.addFilterBefore(authenticationFilter, BasicAuthenticationFilter.class)
+        var authenticationProvider = new PreAuthenticatedAuthenticationProvider();
+        authenticationProvider.setPreAuthenticatedUserDetailsService(new CodeVerificationAuthenticationUserDetailsService());
+        builder.addFilterAfter(new RequestTokensFilter(authenticationService), ExceptionTranslationFilter.class)
+                .addFilterBefore(codeAuthenticationFilter, RequestTokensFilter.class)
                 .authenticationProvider(authenticationProvider);
     }
 
-
+    public JwtConfigurer requestMatcher(RequestMatcher requestMatcher) {
+        this.requestMatcher = requestMatcher;
+        return this;
+    }
 }

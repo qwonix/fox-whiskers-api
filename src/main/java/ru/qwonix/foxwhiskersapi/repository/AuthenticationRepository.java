@@ -1,19 +1,12 @@
 package ru.qwonix.foxwhiskersapi.repository;
 
-import org.springframework.security.core.Authentication;
-import ru.qwonix.foxwhiskersapi.entity.Role;
+import java.time.Duration;
 
 public interface AuthenticationRepository {
 
-    Authentication authenticate(String phoneNumber, String code);
+    Boolean hasKeyAndValue(String key, String value);
 
-    Boolean sendCode(String phoneNumber);
+    void add(String key, String value, Duration duration);
 
-    String generateAccessToken(String phoneNumber, Role role);
-
-    String generateRefreshToken(String phoneNumber);
-
-    String getSubjectFromRefreshTokenClaims(String refreshToken);
-
-    Boolean revokeRefreshToken(String refreshToken);
+    Boolean delete(String key);
 }
