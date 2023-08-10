@@ -37,7 +37,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorizeHttpRequests ->
                         authorizeHttpRequests
                                 .requestMatchers("/manager.html").authenticated()
-                                .requestMatchers("/error").permitAll()
+                                .requestMatchers("/api/v1/auth/code").permitAll()
                                 .anyRequest().authenticated())
         ;
 
