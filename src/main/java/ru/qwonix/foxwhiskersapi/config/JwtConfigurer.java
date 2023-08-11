@@ -13,10 +13,12 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import ru.qwonix.foxwhiskersapi.security.CodeVerificationAuthenticationUserDetailsService;
 import ru.qwonix.foxwhiskersapi.security.converter.CodeVerificationAuthenticationConverter;
 import ru.qwonix.foxwhiskersapi.security.converter.JwtAuthenticationRequestConverter;
+import ru.qwonix.foxwhiskersapi.security.converter.JwtRefreshConverter;
 import ru.qwonix.foxwhiskersapi.security.filter.RequestTokensFilter;
 import ru.qwonix.foxwhiskersapi.service.AuthenticationService;
 
@@ -24,13 +26,14 @@ import ru.qwonix.foxwhiskersapi.service.AuthenticationService;
 public class JwtConfigurer extends AbstractHttpConfigurer<JwtConfigurer, HttpSecurity> {
 
     private final AuthenticationService authenticationService;
-    private RequestMatcher requestMatcher = new AntPathRequestMatcher("/api/v1/auth", HttpMethod.POST.name());
+    private RequestMatcher authenticationRequestMatcher = new AntPathRequestMatcher("/api/v1/auth", HttpMethod.POST.name());
+    private RequestMatcher refreshRequestMatcher = new AntPathRequestMatcher("/api/v1/auth/refresh", HttpMethod.POST.name());
 
     @Override
     public void init(HttpSecurity builder) throws Exception {
         var csrfConfigurer = builder.getConfigurer(CsrfConfigurer.class);
         if (csrfConfigurer != null) {
-            csrfConfigurer.ignoringRequestMatchers(requestMatcher);
+            csrfConfigurer.ignoringRequestMatchers(authenticationRequestMatcher);
         }
     }
 
@@ -43,36 +46,48 @@ public class JwtConfigurer extends AbstractHttpConfigurer<JwtConfigurer, HttpSec
                 authenticationManager,
                 new JwtAuthenticationRequestConverter(authenticationService)
         );
+        // all requests except those related to authentication
+        jwtAuthenticationFilter.setRequestMatcher(new NegatedRequestMatcher(new OrRequestMatcher(authenticationRequestMatcher, refreshRequestMatcher)));
         jwtAuthenticationFilter.setSuccessHandler((request, response, authentication) -> CsrfFilter.skipRequest(request));
-        jwtAuthenticationFilter.setFailureHandler((request, response, exception) -> response.sendError(HttpServletResponse.SC_FORBIDDEN));
-        jwtAuthenticationFilter.setRequestMatcher(new NegatedRequestMatcher(requestMatcher));
-        jwtAuthenticationFilter.setBeanName("jwtAuthenticationFilter");
+        jwtAuthenticationFilter.setFailureHandler((request, response, exception) -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED));
+        jwtAuthenticationFilter.setBeanName("JWT Authentication Filter");
+
+        var jwtRefreshFilter = new AuthenticationFilter(
+                authenticationManager,
+                new JwtRefreshConverter(authenticationService)
+        );
+        jwtRefreshFilter.setRequestMatcher(refreshRequestMatcher);
+        jwtRefreshFilter.setSuccessHandler((request, response, authentication) -> CsrfFilter.skipRequest(request));
+        jwtRefreshFilter.setFailureHandler((request, response, exception) -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED));
+        jwtRefreshFilter.setBeanName("JWT Refresh Filter");
 
         var codeVerificationAuthenticationFilter = new AuthenticationFilter(
                 authenticationManager,
                 new CodeVerificationAuthenticationConverter(authenticationService)
         );
-        codeVerificationAuthenticationFilter.setRequestMatcher(requestMatcher);
+        codeVerificationAuthenticationFilter.setRequestMatcher(authenticationRequestMatcher);
         codeVerificationAuthenticationFilter.setSuccessHandler((request, response, authentication) -> CsrfFilter.skipRequest(request));
-        codeVerificationAuthenticationFilter.setFailureHandler((request, response, exception) -> response.sendError(HttpServletResponse.SC_FORBIDDEN));
-        codeVerificationAuthenticationFilter.setBeanName("codeVerificationAuthenticationFilter");
+        codeVerificationAuthenticationFilter.setFailureHandler((request, response, exception) -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED));
+        codeVerificationAuthenticationFilter.setBeanName("Сode Authentication Verification Filter");
 
         var authenticationProvider = new PreAuthenticatedAuthenticationProvider();
         authenticationProvider.setPreAuthenticatedUserDetailsService(new CodeVerificationAuthenticationUserDetailsService());
 
         var requestTokensFilter = new RequestTokensFilter(authenticationService);
-        requestTokensFilter.setRequestMatcher(requestMatcher);
+        requestTokensFilter.setRequestMatcher(new OrRequestMatcher(authenticationRequestMatcher, refreshRequestMatcher));
 
         builder
                 .authenticationProvider(authenticationProvider)
-                .addFilterBefore(jwtAuthenticationFilter, CsrfFilter.class)
+                .addFilterBefore(jwtRefreshFilter, CsrfFilter.class)
+                .addFilterAfter(jwtAuthenticationFilter, jwtRefreshFilter.getClass())
                 .addFilterAfter(requestTokensFilter, ExceptionTranslationFilter.class)
                 .addFilterBefore(codeVerificationAuthenticationFilter, RequestTokensFilter.class)
-                ;
+        ;
     }
 
-    public JwtConfigurer requestMatcher(RequestMatcher requestMatcher) {
-        this.requestMatcher = requestMatcher;
+
+    public JwtConfigurer authenticationRequestMatcher(RequestMatcher requestMatcher) {
+        this.authenticationRequestMatcher = requestMatcher;
         return this;
     }
 }

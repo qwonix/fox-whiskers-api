@@ -35,7 +35,7 @@ public class RequestTokensFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        log.debug("request {}", request);
+        log.debug("RequestTokensFilter doFilterInternal");
         if (this.requestMatcher.matches(request)) {
             if (this.securityContextRepository.containsContext(request)) {
                 var context = this.securityContextRepository.loadDeferredContext(request).get();
@@ -43,7 +43,6 @@ public class RequestTokensFilter extends OncePerRequestFilter {
                     Authentication authentication = context.getAuthentication();
                     if (authentication instanceof PreAuthenticatedAuthenticationToken &&
                         authentication.getPrincipal() instanceof User user) {
-                        log.debug("request has user {}", user.getUsername());
                         final String subject = user.getUsername();
                         List<String> authorities = authentication.getAuthorities().stream()
                                 .map(GrantedAuthority::getAuthority)
@@ -56,9 +55,7 @@ public class RequestTokensFilter extends OncePerRequestFilter {
                         this.objectMapper.writeValue(response.getWriter(), Map.of("accessToken", accessToken, "refreshToken", refreshToken));
                         return;
                     }
-                    log.debug("authentication is not PreAuthenticatedAuthenticationToken or authentication.getPrincipal() is not User");
                 }
-                log.debug("context is null");
             }
 
             throw new AccessDeniedException("User must be authenticated");

@@ -26,8 +26,8 @@ public class SecurityConfig {
         http.apply(jwtConfigurer);
 
         http
-                // not good
-                .csrf(AbstractHttpConfigurer::disable)
+                // fixme: not good
+                 .csrf(AbstractHttpConfigurer::disable)
                 // REST don't create session
                 .sessionManagement(sessionManagement ->
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -37,6 +37,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorizeHttpRequests ->
                         authorizeHttpRequests
                                 .requestMatchers("/manager.html").authenticated()
+                                .requestMatchers("/error").permitAll()
                                 .requestMatchers("/api/v1/auth/code").permitAll()
                                 .anyRequest().authenticated())
         ;
@@ -45,10 +46,10 @@ public class SecurityConfig {
     }
 
     @Bean
-    public JwtConfigurer JwtConfigurer(AuthenticationService authenticationService) {
+    public JwtConfigurer jwtConfigurer(AuthenticationService authenticationService) {
 
         return new JwtConfigurer(authenticationService)
-                .requestMatcher(new AntPathRequestMatcher("/api/v1/auth", HttpMethod.POST.name()));
+                .authenticationRequestMatcher(new AntPathRequestMatcher("/api/v1/auth", HttpMethod.POST.name()));
     }
 
     @Bean

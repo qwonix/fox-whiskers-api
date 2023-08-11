@@ -18,14 +18,14 @@ public class JwtRefreshConverter implements AuthenticationConverter {
 
     @Override
     public Authentication convert(HttpServletRequest request) {
-        log.debug("convert {}", request.getPathInfo());
+        log.debug("JwtRefreshConverter convert");
         final var authentication = obtainToken(request);
         if (authentication != null && authentication.startsWith("Barer ")) {
-            final var rawToken = authentication.substring(5);
+            final var rawToken = authentication.substring(6);
 
-            var accessClaims = authenticationService.getRefreshClaims(rawToken);
-            if (accessClaims != null) {
-                return new PreAuthenticatedAuthenticationToken(accessClaims.getSubject(), rawToken);
+            var refreshClaims = authenticationService.getRefreshClaims(rawToken);
+            if (refreshClaims != null) {
+                return new PreAuthenticatedAuthenticationToken(refreshClaims.getSubject(), rawToken);
             }
         }
         return null;

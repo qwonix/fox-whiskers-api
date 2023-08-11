@@ -2,12 +2,14 @@ package ru.qwonix.foxwhiskersapi.security.converter;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationConverter;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import ru.qwonix.foxwhiskersapi.service.AuthenticationService;
 
+@Slf4j
 @RequiredArgsConstructor
 public class JwtAuthenticationRequestConverter implements AuthenticationConverter {
 
@@ -15,6 +17,7 @@ public class JwtAuthenticationRequestConverter implements AuthenticationConverte
 
     @Override
     public Authentication convert(HttpServletRequest request) {
+        log.debug("JwtAuthenticationRequestConverter convert");
         final var authentication = obtainToken(request);
         if (authentication != null && authentication.startsWith("Barer ")) {
             final var rawToken = authentication.substring(6);
@@ -24,7 +27,6 @@ public class JwtAuthenticationRequestConverter implements AuthenticationConverte
                 return new PreAuthenticatedAuthenticationToken(accessClaims.getSubject(), rawToken);
             }
         }
-        request.setAttribute("", "");
         return null;
     }
 

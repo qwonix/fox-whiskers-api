@@ -20,24 +20,20 @@ public class CodeVerificationAuthenticationConverter implements AuthenticationCo
 
     @Override
     public Authentication convert(HttpServletRequest request) {
-        log.debug("Authenticating request with CodeAuthentication");
+        log.debug("CodeVerificationAuthenticationConverter convert");
         final var authentication = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (authentication != null && authentication.startsWith("PhoneVerification ")) {
             final var base64 = authentication.replaceAll("^PhoneVerification ", "");
             final var rawData = new String(Base64.getDecoder().decode(base64));
-            log.debug("extract raw data {}", rawData);
             final var username = rawData.split(":")[0];
             final var code = rawData.split(":")[1];
 
             if (authenticationService.verifyCodeAuthentication(username, code)) {
-                log.debug("successful verify user {}", username);
-
                 return new PreAuthenticatedAuthenticationToken(username, code);
             } else {
                 throw new BadCredentialsException("Verification code is incorrect");
             }
         }
-        log.debug("request does not contain token starting with \"PhoneVerification \"");
         return null;
     }
 }
