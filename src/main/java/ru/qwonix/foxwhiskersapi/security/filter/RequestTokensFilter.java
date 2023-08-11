@@ -7,14 +7,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 import ru.qwonix.foxwhiskersapi.service.AuthenticationService;
@@ -28,22 +27,24 @@ import java.util.Map;
 @Slf4j
 public class RequestTokensFilter extends OncePerRequestFilter {
 
-    private final RequestMatcher requestMatcher = new AntPathRequestMatcher("/api/v1/auth", HttpMethod.POST.name());
+    private RequestMatcher requestMatcher;
     private final AuthenticationService authenticationService;
     private final SecurityContextRepository securityContextRepository = new RequestAttributeSecurityContextRepository();
-
     private final ObjectMapper objectMapper = new ObjectMapper();
 
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        log.debug("request {}", request);
         if (this.requestMatcher.matches(request)) {
             if (this.securityContextRepository.containsContext(request)) {
                 var context = this.securityContextRepository.loadDeferredContext(request).get();
                 if (context != null) {
                     Authentication authentication = context.getAuthentication();
-                    if (authentication instanceof PreAuthenticatedAuthenticationToken) {
-                        final String subject = authentication.getPrincipal().toString();
+                    if (authentication instanceof PreAuthenticatedAuthenticationToken &&
+                        authentication.getPrincipal() instanceof User user) {
+                        log.debug("request has user {}", user.getUsername());
+                        final String subject = user.getUsername();
                         List<String> authorities = authentication.getAuthorities().stream()
                                 .map(GrantedAuthority::getAuthority)
                                 .toList();
@@ -55,12 +56,18 @@ public class RequestTokensFilter extends OncePerRequestFilter {
                         this.objectMapper.writeValue(response.getWriter(), Map.of("accessToken", accessToken, "refreshToken", refreshToken));
                         return;
                     }
+                    log.debug("authentication is not PreAuthenticatedAuthenticationToken or authentication.getPrincipal() is not User");
                 }
+                log.debug("context is null");
             }
 
             throw new AccessDeniedException("User must be authenticated");
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    public void setRequestMatcher(RequestMatcher requestMatcher) {
+        this.requestMatcher = requestMatcher;
     }
 }

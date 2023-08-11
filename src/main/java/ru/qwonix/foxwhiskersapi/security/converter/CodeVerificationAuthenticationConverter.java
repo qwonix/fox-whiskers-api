@@ -1,4 +1,4 @@
-package ru.qwonix.foxwhiskersapi.security.filter;
+package ru.qwonix.foxwhiskersapi.security.converter;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -25,15 +25,19 @@ public class CodeVerificationAuthenticationConverter implements AuthenticationCo
         if (authentication != null && authentication.startsWith("PhoneVerification ")) {
             final var base64 = authentication.replaceAll("^PhoneVerification ", "");
             final var rawData = new String(Base64.getDecoder().decode(base64));
+            log.debug("extract raw data {}", rawData);
             final var username = rawData.split(":")[0];
             final var code = rawData.split(":")[1];
-            if (authenticationService.authenticate(username, code)) {
+
+            if (authenticationService.verifyCodeAuthentication(username, code)) {
+                log.debug("successful verify user {}", username);
+
                 return new PreAuthenticatedAuthenticationToken(username, code);
-            }
-            else {
+            } else {
                 throw new BadCredentialsException("Verification code is incorrect");
             }
         }
+        log.debug("request does not contain token starting with \"PhoneVerification \"");
         return null;
     }
 }
