@@ -30,9 +30,8 @@ class ImageRestControllerIT {
     MockMvc mockMvc;
 
     @Test
-    public void handleUpload_ValidImage_ReturnValidResponse() throws Exception {
-        MockMultipartFile image3
-                = new MockMultipartFile(
+    void handleUpload_ValidImage_ReturnValidResponse() throws Exception {
+        var image3 = new MockMultipartFile(
                 "image",
                 "image.png",
                 MediaType.IMAGE_PNG_VALUE,
@@ -52,9 +51,8 @@ class ImageRestControllerIT {
 
 
     @Test
-    public void handleUpload_DuplicateImageName_ReturnValidResponse() throws Exception {
-        MockMultipartFile image2
-                = new MockMultipartFile(
+    void handleUpload_DuplicateImageName_ReturnValidResponse() throws Exception {
+        var image2 = new MockMultipartFile(
                 "image",
                 "image_2.png",
                 MediaType.IMAGE_PNG_VALUE,

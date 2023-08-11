@@ -23,7 +23,7 @@ class PickUpLocationRestControllerIT {
     MockMvc mockMvc;
 
     @Test
-    public void handleAll_ReturnsValidResponseEntity() throws Exception {
+    void handleAll_ReturnsValidResponseEntity() throws Exception {
         var requestBuilder = get("/api/v1/location");
 
         this.mockMvc.perform(requestBuilder)
@@ -59,7 +59,7 @@ class PickUpLocationRestControllerIT {
     }
 
     @Test
-    public void handlePriority_ParamIsMax_ReturnsValidResponseEntity() throws Exception {
+    void handlePriority_ParamIsMax_ReturnsValidResponseEntity() throws Exception {
         var requestBuilder = get("/api/v1/location?priority=max");
 
         this.mockMvc.perform(requestBuilder)
@@ -83,7 +83,7 @@ class PickUpLocationRestControllerIT {
 
 
     @Test
-    public void handlePriority_ParamIsPriorityValue_ReturnsValidResponseEntity() throws Exception {
+    void handlePriority_ParamIsPriorityValue_ReturnsValidResponseEntity() throws Exception {
         var requestBuilder = get("/api/v1/location?priority=5");
 
         this.mockMvc.perform(requestBuilder)
@@ -106,7 +106,7 @@ class PickUpLocationRestControllerIT {
     }
 
     @Test
-    public void handlePriority_ParamIsPriorityValueButNotExists_ReturnsValidResponseCode() throws Exception {
+    void handlePriority_ParamIsPriorityValueButNotExists_ReturnsValidResponseCode() throws Exception {
         var requestBuilder = get("/api/v1/location?priority=3");
 
         this.mockMvc.perform(requestBuilder)
@@ -114,7 +114,7 @@ class PickUpLocationRestControllerIT {
     }
 
     @Test
-    public void handlePriority_ParamIsInvalid_ReturnsValidResponseCode() throws Exception {
+    void handlePriority_ParamIsInvalid_ReturnsValidResponseCode() throws Exception {
         var requestBuilder = get("/api/v1/location?priority=hello");
 
         this.mockMvc.perform(requestBuilder)

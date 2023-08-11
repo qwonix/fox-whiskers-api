@@ -36,9 +36,11 @@ public class SecurityConfig {
                 }))
                 .authorizeHttpRequests(authorizeHttpRequests ->
                         authorizeHttpRequests
-                                .requestMatchers("/manager.html").authenticated()
                                 .requestMatchers("/error").permitAll()
                                 .requestMatchers("/api/v1/auth/code").permitAll()
+                                .requestMatchers("/api/v1/dish/**").permitAll()
+                                .requestMatchers("/api/v1/image/**").permitAll()
+                                .requestMatchers("/api/v1/location/**").permitAll()
                                 .anyRequest().authenticated())
         ;
 

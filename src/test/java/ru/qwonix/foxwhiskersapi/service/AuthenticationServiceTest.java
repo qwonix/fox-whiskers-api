@@ -27,9 +27,7 @@ import static org.mockito.Mockito.*;
 class AuthenticationServiceTest {
 
     private static final List<String> PERMISSIONS = List.of();
-
     private static final String PHONE_NUMBER = "+7 (999) 123-45-67";
-
     public static final String CODE = "0000";
     @Mock
     ClientService clientService;
@@ -40,7 +38,7 @@ class AuthenticationServiceTest {
     AuthenticationService authenticationService;
 
     @BeforeEach
-    void test() {
+    void setUp() {
         var accessJwtKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
         var refreshJwtKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
         authenticationService = new JwtAuthenticationService(clientService, authenticationRepository, accessJwtKey, refreshJwtKey);
@@ -48,8 +46,8 @@ class AuthenticationServiceTest {
 
     @Test
     void constructor_SecretTokensAreNull_ThrowsIllegalArgumentException() {
-        String accessJwtSecret = null;
-        String refreshJwtSecret = null;
+        final String accessJwtSecret = null;
+        final String refreshJwtSecret = null;
 
         assertThrows(IllegalArgumentException.class, () ->
                 new JwtAuthenticationService(clientService, authenticationRepository, accessJwtSecret, refreshJwtSecret));
@@ -58,8 +56,8 @@ class AuthenticationServiceTest {
 
     @Test
     void constructor_SecretTokensAreWeak_ThrowsWeakKeyException() {
-        String accessJwtSecret = "h9dHOdBnBQ2AVk5dX8wV3zXoxBwnlh";
-        String refreshJwtSecret = "ifEPLE6seg6O6dGeuFwiaasdfiuh23f";
+        final var accessJwtSecret = "h9dHOdBnBQ2AVk5dX8wV3zXoxBwnlh";
+        final var refreshJwtSecret = "ifEPLE6seg6O6dGeuFwiaasdfiuh23f";
 
         assertThrows(WeakKeyException.class, () ->
                 new JwtAuthenticationService(clientService, authenticationRepository, accessJwtSecret, refreshJwtSecret));
@@ -116,7 +114,6 @@ class AuthenticationServiceTest {
 
         var claims = assertDoesNotThrow(() ->
                 authenticationService.getAccessClaims(token));
-
         assertEquals(PHONE_NUMBER, claims.getSubject());
         assertEquals(PERMISSIONS, claims.get(authenticationService.PERMISSIONS_CLAIM));
     }
@@ -127,7 +124,6 @@ class AuthenticationServiceTest {
 
         var claims = assertDoesNotThrow(() ->
                 authenticationService.getAccessClaims(token));
-
         assertNull(claims.getSubject());
         assertEquals(PERMISSIONS, claims.get(authenticationService.PERMISSIONS_CLAIM));
     }
@@ -138,7 +134,6 @@ class AuthenticationServiceTest {
 
         var claims = assertDoesNotThrow(() ->
                 authenticationService.getRefreshClaims(token));
-
         assertEquals(PHONE_NUMBER, claims.getSubject());
     }
 
@@ -148,7 +143,6 @@ class AuthenticationServiceTest {
 
         var claims = assertDoesNotThrow(() ->
                 authenticationService.getRefreshClaims(token));
-
         assertNull(claims.getSubject());
     }
 
@@ -167,7 +161,6 @@ class AuthenticationServiceTest {
         var anotherAuthenticationService = new JwtAuthenticationService(clientService, authenticationRepository,
                 anotherAccessJwtKey,
                 anotherRefreshJwtKey);
-
         String token = authenticationService.generateAccessToken(PHONE_NUMBER, PERMISSIONS);
 
         Executable executable = () ->
