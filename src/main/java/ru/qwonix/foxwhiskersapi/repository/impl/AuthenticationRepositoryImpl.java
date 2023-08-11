@@ -13,10 +13,13 @@ public class AuthenticationRepositoryImpl implements AuthenticationRepository {
 
     private final RedisTemplate<String, String> redisTemplate;
 
-
     @Override
     public Boolean hasKeyAndValue(String key, String value) {
-        return redisTemplate.opsForValue().get(key).equals(value);
+        var pair = redisTemplate.opsForValue().get(key);
+        if (pair != null) {
+            return pair.equals(value);
+        }
+        return false;
     }
 
     @Override

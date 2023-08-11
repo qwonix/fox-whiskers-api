@@ -5,11 +5,21 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 
+import java.time.Duration;
 import java.util.List;
 
 public interface AuthenticationService {
 
-    boolean authenticate(String username, String code);
+    // FIXME: 11.08.2023 remove constant
+    String PERMISSIONS_CLAIM = "PERMISSIONS";
+
+    void setAuthenticationCodeTtl(Duration authenticationCodeTtl);
+
+    void setAccessTokenTtl(Duration accessTokenTtl);
+
+    void setRefreshTokenTtl(Duration refreshTokenTtl);
+
+    boolean verifyCodeAuthentication(String username, String code);
 
     void sendCode(String phoneNumber);
 
