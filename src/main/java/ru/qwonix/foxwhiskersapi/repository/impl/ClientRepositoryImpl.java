@@ -54,11 +54,10 @@ public class ClientRepositoryImpl implements ClientRepository {
     }
 
     @Override
-    public Client find(UUID id) {
+    public Optional<Client> find(UUID id) {
         return dsl.selectFrom(Tables.CLIENT)
                 .where(Tables.CLIENT.ID.eq(id))
-                .fetchAny()
-                .into(Client.class);
+                .fetchOptionalInto(Client.class);
     }
 
 
@@ -78,7 +77,7 @@ public class ClientRepositoryImpl implements ClientRepository {
     @Override
     public Boolean delete(UUID id) {
         return dsl.deleteFrom(Tables.CLIENT)
-                .where(Tables.CLIENT.ID.eq(id))
-                .execute() == SUCCESS_CODE;
+                       .where(Tables.CLIENT.ID.eq(id))
+                       .execute() == SUCCESS_CODE;
     }
 }

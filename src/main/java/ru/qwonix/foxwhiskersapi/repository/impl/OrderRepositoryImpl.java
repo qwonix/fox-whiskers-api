@@ -9,6 +9,7 @@ import ru.qwonix.foxwhiskersapi.entity.Order;
 import ru.qwonix.foxwhiskersapi.repository.OrderRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class OrderRepositoryImpl implements OrderRepository {
@@ -42,11 +43,10 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public Order find(Long id) {
+    public Optional<Order> find(Long id) {
         return dsl.selectFrom(Tables.ORDER)
                 .where(Tables.ORDER.ID.eq(id))
-                .fetchAny()
-                .into(Order.class);
+                .fetchOptionalInto(Order.class);
     }
 
     @Override
@@ -56,6 +56,7 @@ public class OrderRepositoryImpl implements OrderRepository {
                 .fetch()
                 .into(Order.class);
     }
+
     @Override
     public List<Order> findAll() {
         return findAll(DSL.noCondition());
@@ -64,7 +65,7 @@ public class OrderRepositoryImpl implements OrderRepository {
     @Override
     public Boolean delete(Long id) {
         return dsl.delete(Tables.ORDER)
-                .where(Tables.ORDER.ID.eq(id))
-                .execute() == SUCCESS_CODE;
+                       .where(Tables.ORDER.ID.eq(id))
+                       .execute() == SUCCESS_CODE;
     }
 }

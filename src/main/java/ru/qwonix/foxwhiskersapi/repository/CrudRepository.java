@@ -1,9 +1,9 @@
 package ru.qwonix.foxwhiskersapi.repository;
 
 import org.jooq.Condition;
-import org.jooq.impl.DSL;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface CrudRepository<T, ID> {
 
@@ -13,7 +13,7 @@ public interface CrudRepository<T, ID> {
 
     T update(T t);
 
-    T find(ID id);
+    Optional<T> find(ID id);
 
     List<T> findAll(Condition condition);
 

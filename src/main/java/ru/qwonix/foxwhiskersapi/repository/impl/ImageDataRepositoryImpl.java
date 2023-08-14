@@ -55,11 +55,10 @@ public class ImageDataRepositoryImpl implements ImageDataRepository {
     }
 
     @Override
-    public ImageData find(String imageName) {
+    public Optional<ImageData> find(String imageName) {
         return dsl.selectFrom(Tables.IMAGE_DATA)
                 .where(Tables.IMAGE_DATA.FILE_NAME.eq(imageName))
-                .fetchAny()
-                .into(ImageData.class);
+                .fetchOptionalInto(ImageData.class);
     }
 
     @Override
@@ -78,7 +77,7 @@ public class ImageDataRepositoryImpl implements ImageDataRepository {
     @Override
     public Boolean delete(String imageName) {
         return dsl.delete(Tables.IMAGE_DATA)
-                .where(Tables.IMAGE_DATA.FILE_NAME.eq(imageName))
-                .execute() == SUCCESS_CODE;
+                       .where(Tables.IMAGE_DATA.FILE_NAME.eq(imageName))
+                       .execute() == SUCCESS_CODE;
     }
 }

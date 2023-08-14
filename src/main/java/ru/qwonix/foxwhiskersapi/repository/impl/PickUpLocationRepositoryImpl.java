@@ -11,7 +11,8 @@ import ru.qwonix.foxwhiskersapi.repository.PickUpLocationRepository;
 import java.util.List;
 import java.util.Optional;
 
-import static org.jooq.impl.DSL.*;
+import static org.jooq.impl.DSL.max;
+import static org.jooq.impl.DSL.min;
 
 @Repository
 public class PickUpLocationRepositoryImpl implements PickUpLocationRepository {
@@ -61,11 +62,10 @@ public class PickUpLocationRepositoryImpl implements PickUpLocationRepository {
     }
 
     @Override
-    public PickUpLocation find(Long id) {
+    public Optional<PickUpLocation> find(Long id) {
         return dsl.selectFrom(Tables.PICK_UP_LOCATION)
                 .where(Tables.PICK_UP_LOCATION.ID.eq(id))
-                .fetchAny()
-                .into(PickUpLocation.class);
+                .fetchOptionalInto(PickUpLocation.class);
     }
 
     @Override
@@ -84,8 +84,8 @@ public class PickUpLocationRepositoryImpl implements PickUpLocationRepository {
     @Override
     public Boolean delete(Long id) {
         return dsl.deleteFrom(Tables.PICK_UP_LOCATION)
-                .where(Tables.PICK_UP_LOCATION.ID.eq(id))
-                .execute() == SUCCESS_CODE;
+                       .where(Tables.PICK_UP_LOCATION.ID.eq(id))
+                       .execute() == SUCCESS_CODE;
     }
 
 
