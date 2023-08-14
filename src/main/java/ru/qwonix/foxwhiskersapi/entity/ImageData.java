@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.util.MimeType;
 
 import java.io.IOException;
 

@@ -18,17 +18,12 @@ public class DishServiceImpl implements DishService {
     }
 
     @Override
-    public void save(Dish dish) {
-        dishRepository.save(dish);
-    }
-
-    @Override
     public List<Dish> findAll() {
         return dishRepository.findAll();
     }
 
     @Override
     public Optional<Dish> findById(Long id) {
-        return dishRepository.findById(id);
+        return dishRepository.find(id);
     }
 }

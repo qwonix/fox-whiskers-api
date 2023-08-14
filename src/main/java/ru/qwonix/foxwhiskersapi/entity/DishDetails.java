@@ -1,11 +1,12 @@
 package ru.qwonix.foxwhiskersapi.entity;
 
+import lombok.Builder;
 import lombok.Data;
 
+@Builder
 @Data
 public class DishDetails {
-    private Long id;
     private String compositionText;
     private String measureText;
-    private ImageData imageData;
+    private String imageName;
 }

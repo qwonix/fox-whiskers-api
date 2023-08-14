@@ -8,14 +8,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 import ru.qwonix.foxwhiskersapi.dto.DishDTO;
-import ru.qwonix.foxwhiskersapi.dto.DishTypeDTO;
 import ru.qwonix.foxwhiskersapi.dto.MenuItem;
 import ru.qwonix.foxwhiskersapi.entity.Dish;
 import ru.qwonix.foxwhiskersapi.entity.DishType;
 import ru.qwonix.foxwhiskersapi.service.DishService;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -31,28 +29,23 @@ public class DishRestController {
         this.dishService = dishService;
     }
 
-    @GetMapping()
+    @GetMapping
     public ResponseEntity<List<MenuItem>> all(UriComponentsBuilder builder) {
-        Map<DishType, List<Dish>> dishTypeListMap = dishService.findAll()
-                .stream().collect(Collectors.groupingBy(Dish::getType));
+        Map<DishType, List<Dish>> dishTypeToDishesMap = dishService.findAll().stream().
+                collect(Collectors.groupingBy(Dish::getType));
 
-        List<MenuItem> menuItems = new ArrayList<>();
-        UriComponentsBuilder path = builder.path("/api/v1/image/{imageName}");
-        dishTypeListMap.forEach((dishType, dishes) ->
-        {
-            menuItems.add(new MenuItem(dishType.getTitle(), dishes.stream().map(dish -> {
-                HashMap<String, Object> uriVariables = new HashMap<>();
-                uriVariables.put("imageName", dish.getDishDetails().getImageData().getOriginalFileName());
-                return new DishDTO(
-                        dish.getId(),
-                        dish.getTitle(),
-                        dish.getDishDetails().getMeasureText(),
-                        dish.getCurrencyPrice().doubleValue(),
-                        path.build(uriVariables).toString(),
-                        new DishTypeDTO(dish.getType().getId(), dish.getType().getTitle())
+        var imageUriPath = builder.path("/api/v1/image/{imageName}");
+        var menuItems = new ArrayList<MenuItem>();
+        dishTypeToDishesMap.forEach((dishType, dishes) -> {
+            var dishDTOs = dishes.stream().map(dish -> new DishDTO(
+                    dish.getId(),
+                    dish.getTitle(),
+                    dish.getDishDetails().getMeasureText(),
+                    dish.getCurrencyPrice().doubleValue(),
+                    imageUriPath.build(Map.of("imageName", dish.getDishDetails().getImageName())).toString()
+            )).toList();
 
-                );
-            }).collect(Collectors.toList())));
+            menuItems.add(new MenuItem(dishType.getTitle(), dishDTOs));
         });
 
         return ResponseEntity.ok(menuItems);
@@ -61,7 +54,6 @@ public class DishRestController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Dish> one(@PathVariable("id") Long id) {
-        log.info("one dish");
         return ResponseEntity.of(dishService.findById(id));
     }
 }
