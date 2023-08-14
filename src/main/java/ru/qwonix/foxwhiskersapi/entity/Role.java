@@ -1,25 +1,21 @@
 package ru.qwonix.foxwhiskersapi.entity;
 
 
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
+@Getter
 public enum Role {
-    CLIENT(new HashSet<>(Collections.singletonList(Permission.READ))),
-    ADMIN(new HashSet<>(Arrays.asList(Permission.READ, Permission.WRITE)));
+    CLIENT(Set.of(Permission.READ)),
+    ADMIN(Set.of(Permission.READ, Permission.WRITE)),
+    INCOMPLETE_REGISTRATION(Set.of());
 
     private final Set<Permission> permissions;
 
     Role(Set<Permission> permissions) {
         this.permissions = permissions;
-    }
-
-    public Set<Permission> getPermissions() {
-        return permissions;
     }
 
     public Set<? extends GrantedAuthority> getAuthorities() {

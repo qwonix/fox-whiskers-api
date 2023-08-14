@@ -1,0 +1,1 @@
+alter table client add column "role" varchar(255) not null;

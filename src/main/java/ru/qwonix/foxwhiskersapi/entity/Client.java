@@ -13,14 +13,18 @@ import java.util.UUID;
 public class Client {
     private UUID id;
     private String phoneNumber;
-    private UserStatus status;
+    private String email;
     private String firstName;
     private String lastName;
     private String middleName;
-    private String email;
+
+    private UserStatus status;
+    private Role role;
     private LocalDateTime created;
     private LocalDateTime updated;
-    public Client(String phoneNumber) {
+
+    public Client(String phoneNumber, Role role) {
         this.phoneNumber = phoneNumber;
+        this.role = role;
     }
 }

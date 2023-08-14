@@ -7,8 +7,12 @@ import io.jsonwebtoken.security.SignatureException;
 import jakarta.annotation.Nonnull;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.GrantedAuthority;
 import ru.qwonix.foxwhiskersapi.entity.Client;
+import ru.qwonix.foxwhiskersapi.entity.Permission;
+import ru.qwonix.foxwhiskersapi.entity.Role;
 import ru.qwonix.foxwhiskersapi.repository.AuthenticationRepository;
+import ru.qwonix.foxwhiskersapi.security.Token;
 import ru.qwonix.foxwhiskersapi.service.AuthenticationService;
 import ru.qwonix.foxwhiskersapi.service.ClientService;
 
@@ -17,8 +21,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.random.RandomGenerator;
 
 @Slf4j
@@ -37,7 +40,6 @@ public class JwtAuthenticationService implements AuthenticationService {
     private Duration refreshTokenTtl = Duration.ofDays(30);
 
     /**
-     *
      * @param clientService
      * @param authenticationRepository
      * @param accessJwtSecret
@@ -68,34 +70,42 @@ public class JwtAuthenticationService implements AuthenticationService {
         this.refreshJwtKey = refreshJwtKey;
     }
 
-    @Override
-    public boolean verifyCodeAuthentication(String username, String code) {
-        return authenticationRepository.hasKeyAndValue(username, code);
-    }
-
     private static int generateCode() {
         RandomGenerator gen = RandomGenerator.of("L128X256MixRandom");
         return gen.nextInt(0000, 10000);
     }
 
     @Override
-    public void sendCode(String phoneNumber) {
+    public String createAuthenticationCode(String phoneNumber) {
         if (!clientService.exists(phoneNumber)) {
-            clientService.save(new Client(phoneNumber));
+            clientService.save(new Client(phoneNumber, Role.INCOMPLETE_REGISTRATION));
         }
         String code = String.valueOf(generateCode());
         authenticationRepository.add(phoneNumber, code, authenticationCodeTtl);
+        return code;
     }
 
 
     @Override
-    public String generateAccessToken(String subject, List<String> authorities) {
+    public boolean verifyAuthenticationCode(String username, String code) {
+        return authenticationRepository.hasKeyAndValue(username, code);
+    }
+
+    @Override
+    public Boolean clearAuthenticationCode(String username) {
+        return authenticationRepository.delete(username);
+    }
+
+
+    @Override
+    public String generateAccessToken(String subject, Collection<? extends GrantedAuthority> authorities) {
         final Instant accessExpirationInstant =
                 LocalDateTime.now().plus(accessTokenTtl).atZone(ZoneId.systemDefault()).toInstant();
+        var permissions = authorities.stream().map(GrantedAuthority::getAuthority).toList();
 
         return Jwts.builder()
                 .setSubject(subject)
-                .claim(PERMISSIONS_CLAIM, authorities)
+                .claim(PERMISSIONS_CLAIM, permissions)
                 .setExpiration(Date.from(accessExpirationInstant))
                 .signWith(accessJwtKey)
                 .compact();
@@ -109,28 +119,32 @@ public class JwtAuthenticationService implements AuthenticationService {
         return Jwts.builder()
                 .setSubject(subject)
                 .setExpiration(Date.from(refreshExpirationInstant))
+                .claim(PERMISSIONS_CLAIM, Set.of(Permission.TOKEN_REFRESH, Permission.TOKEN_LOGOUT))
                 .signWith(refreshJwtKey)
                 .compact();
     }
 
     @Override
-    public Claims getAccessClaims(String token) throws
+    public Token getAccessToken(String token) throws
             ExpiredJwtException, UnsupportedJwtException, MalformedJwtException, io.jsonwebtoken.security.SignatureException, IllegalArgumentException {
-        return getClaims(token, accessJwtKey);
+        return getToken(token, accessJwtKey);
     }
 
     @Override
-    public Claims getRefreshClaims(String token) throws
+    public Token getRefreshToken(String token) throws
             ExpiredJwtException, UnsupportedJwtException, MalformedJwtException, io.jsonwebtoken.security.SignatureException, IllegalArgumentException {
-        return getClaims(token, refreshJwtKey);
+        return getToken(token, refreshJwtKey);
     }
 
-    private Claims getClaims(String token, Key secret) throws
+    private Token getToken(String token, Key secret) throws
             ExpiredJwtException, UnsupportedJwtException, MalformedJwtException, SignatureException, IllegalArgumentException {
-        return Jwts.parserBuilder()
+        Claims body = Jwts.parserBuilder()
                 .setSigningKey(secret)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+
+        return new Token(body.getSubject(), body.get(PERMISSIONS_CLAIM, List.class).stream().map(it -> Permission.valueOf(it.toString())).toList());
     }
+
 }

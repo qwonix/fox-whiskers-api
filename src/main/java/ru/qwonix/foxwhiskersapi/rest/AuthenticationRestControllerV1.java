@@ -25,7 +25,7 @@ public class AuthenticationRestControllerV1 {
     @PostMapping("/code")
     public ResponseEntity<Boolean> sendAuthenticationCode(@RequestBody CodeAuthenticationRequestDTO request) {
         log.info("send authentication code request from {}", request.phoneNumber());
-        authenticationService.sendCode(request.phoneNumber());
+        authenticationService.createAuthenticationCode(request.phoneNumber());
         return ResponseEntity.ok(true);
     }
 

@@ -8,6 +8,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import ru.qwonix.foxwhiskersapi.TestcontainersConfiguration;
@@ -16,20 +17,19 @@ import ru.qwonix.foxwhiskersapi.service.AuthenticationService;
 
 import java.time.Duration;
 import java.util.Base64;
-import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@Sql("/sql/authentication_rest_controller/test_data.sql")
 @Transactional
 @SpringBootTest(classes = TestcontainersConfiguration.class)
 @AutoConfigureMockMvc(printOnlyOnFailure = false)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class AuthenticationRestControllerV1IT {
+class AuthenticationControllerIT {
 
-    private static final String PHONE_NUMBER = "+7 (999) 123-45-67";
     public static final String CODE = "1111";
-
+    private static final String PHONE_NUMBER = "+7 (999) 123-45-67";
     @Autowired
     MockMvc mockMvc;
 
@@ -51,9 +51,9 @@ class AuthenticationRestControllerV1IT {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                         {
-                            "phoneNumber": "+7 999 000 00 00"
+                            "phoneNumber": "%s"
                         }
-                        """);
+                        """.formatted(PHONE_NUMBER));
 
         this.mockMvc.perform(requestBuilder)
                 .andExpectAll(status().isOk());
@@ -63,7 +63,7 @@ class AuthenticationRestControllerV1IT {
     @Test
     void handleAuthenticateByCode_ValidData_ReturnsTokens() throws Exception {
         var requestBuilder = post("/api/v1/auth")
-                .header(HttpHeaders.AUTHORIZATION, "PhoneVerification " + Base64.getEncoder().encodeToString((PHONE_NUMBER + ':' + CODE).getBytes()));
+                .header(HttpHeaders.AUTHORIZATION, "CodeVerification " + Base64.getEncoder().encodeToString((PHONE_NUMBER + ':' + CODE).getBytes()));
         this.mockMvc.perform(requestBuilder)
                 .andExpectAll(
                         status().isOk(),
@@ -78,7 +78,7 @@ class AuthenticationRestControllerV1IT {
         final var INVALID_CODE = "1112";
         var requestBuilder = post("/api/v1/auth")
                 .header(HttpHeaders.AUTHORIZATION,
-                        "PhoneVerification " + Base64.getEncoder().encodeToString((PHONE_NUMBER + ':' + INVALID_CODE).getBytes()));
+                        "CodeVerification " + Base64.getEncoder().encodeToString((PHONE_NUMBER + ':' + INVALID_CODE).getBytes()));
         this.mockMvc.perform(requestBuilder)
                 .andExpectAll(
                         status().isUnauthorized()
@@ -89,7 +89,7 @@ class AuthenticationRestControllerV1IT {
     void handleRefreshToken_ValidData_ReturnsNewTokens() throws Exception {
         var requestBuilder = post("/api/v1/auth/refresh")
                 .header(HttpHeaders.AUTHORIZATION,
-                        "Barer " + authenticationService.generateRefreshToken(PHONE_NUMBER));
+                        "Bearer " + authenticationService.generateRefreshToken(PHONE_NUMBER));
         this.mockMvc.perform(requestBuilder)
                 .andExpectAll(
                         status().isOk(),

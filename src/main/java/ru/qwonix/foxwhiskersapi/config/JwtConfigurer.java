@@ -15,22 +15,24 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
-import ru.qwonix.foxwhiskersapi.security.CodeVerificationAuthenticationUserDetailsService;
+import ru.qwonix.foxwhiskersapi.security.TokenAuthenticationUserDetailsService;
 import ru.qwonix.foxwhiskersapi.security.converter.CodeVerificationAuthenticationConverter;
 import ru.qwonix.foxwhiskersapi.security.converter.JwtAuthenticationRequestConverter;
 import ru.qwonix.foxwhiskersapi.security.converter.JwtRefreshConverter;
 import ru.qwonix.foxwhiskersapi.security.filter.RequestTokensFilter;
 import ru.qwonix.foxwhiskersapi.service.AuthenticationService;
+import ru.qwonix.foxwhiskersapi.service.ClientService;
 
 @RequiredArgsConstructor
 public class JwtConfigurer extends AbstractHttpConfigurer<JwtConfigurer, HttpSecurity> {
 
     private final AuthenticationService authenticationService;
+    private final ClientService clientService;
     private RequestMatcher authenticationRequestMatcher = new AntPathRequestMatcher("/api/v1/auth", HttpMethod.POST.name());
     private RequestMatcher refreshRequestMatcher = new AntPathRequestMatcher("/api/v1/auth/refresh", HttpMethod.POST.name());
 
     @Override
-    public void init(HttpSecurity builder) throws Exception {
+    public void init(HttpSecurity builder) {
         var csrfConfigurer = builder.getConfigurer(CsrfConfigurer.class);
         if (csrfConfigurer != null) {
             csrfConfigurer.ignoringRequestMatchers(authenticationRequestMatcher);
@@ -38,7 +40,7 @@ public class JwtConfigurer extends AbstractHttpConfigurer<JwtConfigurer, HttpSec
     }
 
     @Override
-    public void configure(HttpSecurity builder) throws Exception {
+    public void configure(HttpSecurity builder) {
         final var authenticationManager =
                 builder.getSharedObject(AuthenticationManager.class);
 
@@ -71,7 +73,8 @@ public class JwtConfigurer extends AbstractHttpConfigurer<JwtConfigurer, HttpSec
         codeVerificationAuthenticationFilter.setBeanName("Сode Authentication Verification Filter");
 
         var authenticationProvider = new PreAuthenticatedAuthenticationProvider();
-        authenticationProvider.setPreAuthenticatedUserDetailsService(new CodeVerificationAuthenticationUserDetailsService());
+        var codeVerificationAuthenticationUserDetailsService = new TokenAuthenticationUserDetailsService(clientService, authenticationService);
+        authenticationProvider.setPreAuthenticatedUserDetailsService(codeVerificationAuthenticationUserDetailsService);
 
         var requestTokensFilter = new RequestTokensFilter(authenticationService);
         requestTokensFilter.setRequestMatcher(new OrRequestMatcher(authenticationRequestMatcher, refreshRequestMatcher));
@@ -85,9 +88,13 @@ public class JwtConfigurer extends AbstractHttpConfigurer<JwtConfigurer, HttpSec
         ;
     }
 
-
     public JwtConfigurer authenticationRequestMatcher(RequestMatcher requestMatcher) {
         this.authenticationRequestMatcher = requestMatcher;
+        return this;
+    }
+
+    public JwtConfigurer refreshRequestMatcher(RequestMatcher requestMatcher) {
+        this.refreshRequestMatcher = requestMatcher;
         return this;
     }
 }

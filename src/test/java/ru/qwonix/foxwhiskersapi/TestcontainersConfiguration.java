@@ -13,11 +13,11 @@ public class TestcontainersConfiguration {
         final int port = 6379;
         GenericContainer<?> redis =
                 new GenericContainer<>(DockerImageName.parse("redis:6.0.20-alpine")).withExposedPorts(port);
-        redis.start();
-        System.setProperty("spring.redis.host", redis.getHost());
-        System.setProperty("spring.redis.port", redis.getMappedPort(port).toString());
-    }
 
+        redis.start();
+        System.setProperty("spring.data.redis.host", redis.getHost());
+        System.setProperty("spring.data.redis.port", redis.getMappedPort(port).toString());
+    }
 
 
     @ServiceConnection

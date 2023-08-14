@@ -13,18 +13,18 @@ import ru.qwonix.foxwhiskersapi.service.AuthenticationService;
 @RequiredArgsConstructor
 public class JwtAuthenticationRequestConverter implements AuthenticationConverter {
 
+    private static final String AUTHENTICATION_SCHEME = "Bearer";
+
     private final AuthenticationService authenticationService;
 
     @Override
     public Authentication convert(HttpServletRequest request) {
-        log.debug("JwtAuthenticationRequestConverter convert");
-        final var authentication = obtainToken(request);
-        if (authentication != null && authentication.startsWith("Barer ")) {
-            final var rawToken = authentication.substring(6);
-
-            var accessClaims = authenticationService.getAccessClaims(rawToken);
-            if (accessClaims != null) {
-                return new PreAuthenticatedAuthenticationToken(accessClaims.getSubject(), rawToken);
+        log.info("token authentication request");
+        final var token = obtainToken(request);
+        if (token != null) {
+            var accessToken = authenticationService.getAccessToken(token);
+            if (accessToken != null) {
+                return new PreAuthenticatedAuthenticationToken(accessToken.subject(), token, accessToken.authorities());
             }
         }
         return null;
@@ -36,6 +36,10 @@ public class JwtAuthenticationRequestConverter implements AuthenticationConverte
      * @return the token that will be presented in the Authentication request token to the AuthenticationManager
      */
     private String obtainToken(HttpServletRequest request) {
-        return request.getHeader(HttpHeaders.AUTHORIZATION);
+        final var authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (authorization != null && authorization.startsWith(AUTHENTICATION_SCHEME)) {
+            return authorization.substring(AUTHENTICATION_SCHEME.length() + 1);
+        }
+        return null;
     }
 }

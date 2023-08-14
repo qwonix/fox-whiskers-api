@@ -1,17 +1,19 @@
 package ru.qwonix.foxwhiskersapi.service;
 
-import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.security.SignatureException;
+import org.springframework.security.core.GrantedAuthority;
+import ru.qwonix.foxwhiskersapi.security.Token;
 
 import java.time.Duration;
-import java.util.List;
+import java.util.Collection;
 
 public interface AuthenticationService {
 
     // FIXME: 11.08.2023 remove constant
-    String PERMISSIONS_CLAIM = "PERMISSIONS";
+    String PERMISSIONS_CLAIM = "permissions";
 
     void setAuthenticationCodeTtl(Duration authenticationCodeTtl);
 
@@ -19,17 +21,19 @@ public interface AuthenticationService {
 
     void setRefreshTokenTtl(Duration refreshTokenTtl);
 
-    boolean verifyCodeAuthentication(String username, String code);
+    boolean verifyAuthenticationCode(String username, String code);
 
-    void sendCode(String phoneNumber);
+    String createAuthenticationCode(String username);
 
-    String generateAccessToken(String subject, List<String> authorities);
+    Boolean clearAuthenticationCode(String username);
+
+    String generateAccessToken(String subject, Collection<? extends GrantedAuthority> authorities);
 
     String generateRefreshToken(String subject);
 
-    Claims getAccessClaims(String token) throws
-            ExpiredJwtException, UnsupportedJwtException, MalformedJwtException, io.jsonwebtoken.security.SignatureException, IllegalArgumentException;
+    Token getAccessToken(String token) throws
+            ExpiredJwtException, UnsupportedJwtException, MalformedJwtException, SignatureException, IllegalArgumentException;
 
-    Claims getRefreshClaims(String token) throws
-            ExpiredJwtException, UnsupportedJwtException, MalformedJwtException, io.jsonwebtoken.security.SignatureException, IllegalArgumentException;
+    Token getRefreshToken(String token) throws
+            ExpiredJwtException, UnsupportedJwtException, MalformedJwtException, SignatureException, IllegalArgumentException;
 }

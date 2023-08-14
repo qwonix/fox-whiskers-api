@@ -28,7 +28,7 @@ public class AuthenticationRepositoryImpl implements AuthenticationRepository {
     }
 
     @Override
-    public Boolean delete(String refreshToken) {
-        return redisTemplate.delete(refreshToken);
+    public Boolean delete(String key) {
+        return redisTemplate.delete(key);
     }
 }
