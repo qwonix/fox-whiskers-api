@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.qwonix.foxwhiskersapi.dto.UpdateUserDTO;
+import ru.qwonix.foxwhiskersapi.entity.Role;
 import ru.qwonix.foxwhiskersapi.entity.User;
 import ru.qwonix.foxwhiskersapi.service.UserService;
 
@@ -38,7 +39,8 @@ public class UserRestController {
 
             if (updateUserDTO.email() != null) {
                 // TODO: 12.08.2023 to update email need confirmation
-                return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+                user.setEmail(updateUserDTO.email());
+                user.setRole(Role.CLIENT);
             }
 
             if (updateUserDTO.firstName() != null) {

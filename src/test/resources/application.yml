@@ -9,3 +9,11 @@ jwt:
   ttl:
     access: 1h
     refresh: 5h
+
+
+
+logging:
+  level:
+    org.jooq.tools: debug
+    ru.qwonix.foxwhiskersapi: trace
+    org.springframework.security: trace
