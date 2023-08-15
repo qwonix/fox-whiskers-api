@@ -1,0 +1,1 @@
+alter table client rename to "user";

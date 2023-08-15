@@ -1,7 +1,7 @@
 package ru.qwonix.foxwhiskersapi.entity;
 
 /**
- * Represents the status of a {@link Client} account.
+ * Represents the status of a {@link User} account.
  */
 public enum UserStatus {
 

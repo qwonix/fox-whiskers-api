@@ -21,13 +21,13 @@ import ru.qwonix.foxwhiskersapi.security.converter.JwtAuthenticationRequestConve
 import ru.qwonix.foxwhiskersapi.security.converter.JwtRefreshConverter;
 import ru.qwonix.foxwhiskersapi.security.filter.RequestTokensFilter;
 import ru.qwonix.foxwhiskersapi.service.AuthenticationService;
-import ru.qwonix.foxwhiskersapi.service.ClientService;
+import ru.qwonix.foxwhiskersapi.service.UserService;
 
 @RequiredArgsConstructor
 public class JwtConfigurer extends AbstractHttpConfigurer<JwtConfigurer, HttpSecurity> {
 
     private final AuthenticationService authenticationService;
-    private final ClientService clientService;
+    private final UserService userService;
     private RequestMatcher authenticationRequestMatcher = new AntPathRequestMatcher("/api/v1/auth", HttpMethod.POST.name());
     private RequestMatcher refreshRequestMatcher = new AntPathRequestMatcher("/api/v1/auth/refresh", HttpMethod.POST.name());
 
@@ -73,7 +73,7 @@ public class JwtConfigurer extends AbstractHttpConfigurer<JwtConfigurer, HttpSec
         codeVerificationAuthenticationFilter.setBeanName("Сode Authentication Verification Filter");
 
         var authenticationProvider = new PreAuthenticatedAuthenticationProvider();
-        var codeVerificationAuthenticationUserDetailsService = new TokenAuthenticationUserDetailsService(clientService, authenticationService);
+        var codeVerificationAuthenticationUserDetailsService = new TokenAuthenticationUserDetailsService(userService, authenticationService);
         authenticationProvider.setPreAuthenticatedUserDetailsService(codeVerificationAuthenticationUserDetailsService);
 
         var requestTokensFilter = new RequestTokensFilter(authenticationService);

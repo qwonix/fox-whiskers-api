@@ -11,7 +11,7 @@ import java.util.List;
 @Builder
 public class Order {
     private Long id;
-    private Client client;
+    private User user;
     private OrderStatus status;
     private String receivingCode;
     private List<OrderItem> orderItems;

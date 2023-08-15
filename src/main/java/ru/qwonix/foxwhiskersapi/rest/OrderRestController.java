@@ -15,7 +15,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -31,8 +30,8 @@ public class OrderRestController {
 
     @PostMapping
     public ResponseEntity<List<OrderResponseDTO>> byPhoneNumber(@RequestBody OrdersDTO ordersDTO) {
-        log.info("GET all orders by client phone number");
-        List<Order> orders = orderService.findAllByClientPhoneNumber(ordersDTO.phoneNumber());
+        log.info("GET all orders by phone number");
+        List<Order> orders = orderService.findAllByPhoneNumber(ordersDTO.phoneNumber());
         List<OrderResponseDTO> orderResponse = orders.stream().map(order -> {
             BigDecimal totalPrice = BigDecimal.ZERO;
             for (OrderItem orderItem : order.getOrderItems()) {
@@ -48,7 +47,7 @@ public class OrderRestController {
             return new OrderResponseDTO(
                     formattedId,
                     formattedId + "::" + order.getReceivingCode(),
-                    order.getClient(),
+                    order.getUser(),
                     order.getOrderItems(),
                     order.getStatus(),
                     order.getPickUpLocation(),
@@ -57,7 +56,7 @@ public class OrderRestController {
                     created.plusMinutes(20).format(DateTimeFormatter.ofPattern("HH:mm")),
                     LocalDateTime.now()
             );
-        }).collect(Collectors.toList());
+        }).toList();
         return ResponseEntity.ok(orderResponse);
     }
 

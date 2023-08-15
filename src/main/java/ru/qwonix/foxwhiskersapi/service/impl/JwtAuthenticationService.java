@@ -8,13 +8,13 @@ import jakarta.annotation.Nonnull;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.GrantedAuthority;
-import ru.qwonix.foxwhiskersapi.entity.Client;
+import ru.qwonix.foxwhiskersapi.entity.User;
 import ru.qwonix.foxwhiskersapi.entity.Permission;
 import ru.qwonix.foxwhiskersapi.entity.Role;
 import ru.qwonix.foxwhiskersapi.repository.AuthenticationRepository;
 import ru.qwonix.foxwhiskersapi.security.Token;
 import ru.qwonix.foxwhiskersapi.service.AuthenticationService;
-import ru.qwonix.foxwhiskersapi.service.ClientService;
+import ru.qwonix.foxwhiskersapi.service.UserService;
 
 import java.security.Key;
 import java.time.Duration;
@@ -29,7 +29,7 @@ public class JwtAuthenticationService implements AuthenticationService {
 
     private final Key accessJwtKey;
     private final Key refreshJwtKey;
-    private final ClientService clientService;
+    private final UserService userService;
     private final AuthenticationRepository authenticationRepository;
 
     @Setter
@@ -40,31 +40,31 @@ public class JwtAuthenticationService implements AuthenticationService {
     private Duration refreshTokenTtl = Duration.ofDays(30);
 
     /**
-     * @param clientService
+     * @param userService
      * @param authenticationRepository
      * @param accessJwtSecret
      * @param refreshJwtSecret
      * @throws io.jsonwebtoken.security.WeakKeyException
      */
-    public JwtAuthenticationService(ClientService clientService,
+    public JwtAuthenticationService(UserService userService,
                                     AuthenticationRepository authenticationRepository,
                                     @Nonnull String accessJwtSecret,
                                     @Nonnull String refreshJwtSecret
     ) {
         this(
-                clientService,
+                userService,
                 authenticationRepository,
                 Keys.hmacShaKeyFor(Decoders.BASE64.decode(accessJwtSecret)),
                 Keys.hmacShaKeyFor(Decoders.BASE64.decode(refreshJwtSecret))
         );
     }
 
-    public JwtAuthenticationService(ClientService clientService,
+    public JwtAuthenticationService(UserService userService,
                                     AuthenticationRepository authenticationRepository,
                                     @Nonnull Key accessJwtKey,
                                     @Nonnull Key refreshJwtKey
     ) {
-        this.clientService = clientService;
+        this.userService = userService;
         this.authenticationRepository = authenticationRepository;
         this.accessJwtKey = accessJwtKey;
         this.refreshJwtKey = refreshJwtKey;
@@ -77,8 +77,8 @@ public class JwtAuthenticationService implements AuthenticationService {
 
     @Override
     public String createAuthenticationCode(String phoneNumber) {
-        if (!clientService.exists(phoneNumber)) {
-            clientService.save(new Client(phoneNumber, Role.INCOMPLETE_REGISTRATION));
+        if (!userService.exists(phoneNumber)) {
+            userService.save(new User(phoneNumber, Role.INCOMPLETE_REGISTRATION));
         }
         String code = String.valueOf(generateCode());
         authenticationRepository.add(phoneNumber, code, authenticationCodeTtl);

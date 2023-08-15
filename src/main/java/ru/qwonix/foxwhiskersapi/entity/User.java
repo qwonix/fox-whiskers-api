@@ -10,7 +10,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class Client {
+public class User {
     private UUID id;
     private String phoneNumber;
     private String email;
@@ -23,7 +23,7 @@ public class Client {
     private LocalDateTime created;
     private LocalDateTime updated;
 
-    public Client(String phoneNumber, Role role) {
+    public User(String phoneNumber, Role role) {
         this.phoneNumber = phoneNumber;
         this.role = role;
     }

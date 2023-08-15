@@ -12,7 +12,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import ru.qwonix.foxwhiskersapi.repository.AuthenticationRepository;
 import ru.qwonix.foxwhiskersapi.service.AuthenticationService;
-import ru.qwonix.foxwhiskersapi.service.ClientService;
+import ru.qwonix.foxwhiskersapi.service.UserService;
 import ru.qwonix.foxwhiskersapi.service.impl.JwtAuthenticationService;
 
 
@@ -48,18 +48,18 @@ public class SecurityConfig {
     }
 
     @Bean
-    public JwtConfigurer jwtConfigurer(AuthenticationService authenticationService,ClientService clientService) {
-        return new JwtConfigurer(authenticationService, clientService)
+    public JwtConfigurer jwtConfigurer(AuthenticationService authenticationService, UserService userService) {
+        return new JwtConfigurer(authenticationService, userService)
                 .authenticationRequestMatcher(new AntPathRequestMatcher("/api/v1/auth", HttpMethod.POST.name()))
                 .refreshRequestMatcher(new AntPathRequestMatcher("/api/v1/auth/refresh", HttpMethod.POST.name()));
     }
 
     @Bean
-    public JwtAuthenticationService authenticationService(ClientService clientService,
+    public JwtAuthenticationService authenticationService(UserService userService,
                                                           AuthenticationRepository authenticationRepository,
                                                           @Value("${jwt.key.access}") String jwtAccessSecret,
                                                           @Value("${jwt.key.refresh}") String jwtRefreshSecret) {
-        return new JwtAuthenticationService(clientService, authenticationRepository, jwtAccessSecret, jwtRefreshSecret);
+        return new JwtAuthenticationService(userService, authenticationRepository, jwtAccessSecret, jwtRefreshSecret);
     }
 
 

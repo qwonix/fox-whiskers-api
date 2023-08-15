@@ -20,7 +20,7 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public List<Order> findAllByClientPhoneNumber(String phoneNumber) {
+    public List<Order> findAllByPhoneNumber(String phoneNumber) {
         return null;
     }
 
