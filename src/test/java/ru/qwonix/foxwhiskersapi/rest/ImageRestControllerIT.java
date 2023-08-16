@@ -13,9 +13,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import ru.qwonix.foxwhiskersapi.TestcontainersConfiguration;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 
 @Sql("/sql/image_rest_controller/test_data.sql")
@@ -28,6 +28,17 @@ class ImageRestControllerIT {
 
     @Autowired
     MockMvc mockMvc;
+
+    @Test
+    void handleGet_ValidImageName_ReturnValidResponse() throws Exception {
+        var requestBuilder = get("/api/v1/image/image_1");
+
+        this.mockMvc.perform(requestBuilder)
+                .andExpectAll(
+                        status().isOk(),
+                        content().contentType(MediaType.IMAGE_PNG)
+                );
+    }
 
     @Test
     void handleUpload_ValidImage_ReturnValidResponse() throws Exception {
