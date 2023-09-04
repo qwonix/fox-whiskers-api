@@ -48,7 +48,10 @@ public class RequestTokensFilter extends OncePerRequestFilter {
 
                         response.setStatus(HttpServletResponse.SC_OK);
                         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                        this.objectMapper.writeValue(response.getWriter(), Map.of("accessToken", accessToken, "refreshToken", refreshToken));
+                        this.objectMapper.writeValue(response.getWriter(), Map.of(
+                                "accessToken", accessToken,
+                                "refreshToken", refreshToken)
+                        );
                         return;
                     }
                 }

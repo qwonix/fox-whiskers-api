@@ -183,4 +183,20 @@ class UserRestControllerIT {
         );
     }
 
+//    @Test
+//    void handle_UpdateNameInvalidAuthenticatonToken_AccessDenied() {
+//        String invalidAccessToken = authenticationService.generateAccessToken(IVAN_IVANOV.getPhoneNumber(), IVAN_IVANOV.getRole().getAuthorities());
+//
+//        var requestBuilder = patch("/api/v1/user")
+//                .header(HttpHeaders.AUTHORIZATION, "Bearer " + invalidAccessToken)
+//                .contentType(MediaType.APPLICATION_JSON)
+//                .content(requestContent);
+//
+//
+//        this.mockMvc.perform(requestBuilder).andExpectAll(
+//                status().isOk(),
+//                content().contentType(MediaType.APPLICATION_JSON),
+//                content().json(expectedResponseContent)
+//        );
+//    }
 }

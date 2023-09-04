@@ -21,12 +21,11 @@ public class AuthenticationRestControllerV1 {
         this.authenticationService = authenticationService;
     }
 
-
     @PostMapping("/code")
     public ResponseEntity<Boolean> sendAuthenticationCode(@RequestBody CodeAuthenticationRequestDTO request) {
         log.info("send authentication code request from {}", request.phoneNumber());
         authenticationService.createAuthenticationCode(request.phoneNumber());
-        return ResponseEntity.ok(true);
+        return ResponseEntity.ok().build();
     }
 
 }

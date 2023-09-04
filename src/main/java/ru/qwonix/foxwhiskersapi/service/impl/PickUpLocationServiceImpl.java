@@ -24,13 +24,14 @@ public class PickUpLocationServiceImpl implements PickUpLocationService {
 
     @Override
     public Optional<PickUpLocation> getMaxPriority() {
+        // descending order: 1 is higher priority than 2
         return pickUpLocationRepository.findMinPriority();
     }
 
     @Override
     public Optional<PickUpLocation> getMinPriority() {
+        // descending order: 2 is lower priority than 1
         return pickUpLocationRepository.findMaxPriority();
-
     }
 
     @Override

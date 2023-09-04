@@ -1,12 +1,12 @@
 package ru.qwonix.foxwhiskersapi.rest;
 
+import com.fasterxml.jackson.databind.node.TextNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.qwonix.foxwhiskersapi.dto.OrderRequestDTO;
 import ru.qwonix.foxwhiskersapi.dto.OrderResponseDTO;
-import ru.qwonix.foxwhiskersapi.dto.OrdersDTO;
 import ru.qwonix.foxwhiskersapi.entity.Order;
 import ru.qwonix.foxwhiskersapi.entity.OrderItem;
 import ru.qwonix.foxwhiskersapi.service.OrderService;
@@ -18,7 +18,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/order")
+@RequestMapping("/api/v1")
 public class OrderRestController {
 
     private final OrderService orderService;
@@ -28,11 +28,11 @@ public class OrderRestController {
     }
 
 
-    @PostMapping
-    public ResponseEntity<List<OrderResponseDTO>> byPhoneNumber(@RequestBody OrdersDTO ordersDTO) {
-        log.info("GET all orders by phone number");
-        List<Order> orders = orderService.findAllByPhoneNumber(ordersDTO.phoneNumber());
-        List<OrderResponseDTO> orderResponse = orders.stream().map(order -> {
+    @PostMapping("/user/order")
+    public ResponseEntity<List<OrderResponseDTO>> findByUsername(@RequestBody TextNode username) {
+        var userOrders = orderService.findAllByUsername(username.asText());
+
+        List<OrderResponseDTO> orderResponse = userOrders.stream().map(order -> {
             BigDecimal totalPrice = BigDecimal.ZERO;
             for (OrderItem orderItem : order.getOrderItems()) {
                 BigDecimal itemPrice = orderItem.getDish().getCurrencyPrice();
@@ -47,7 +47,6 @@ public class OrderRestController {
             return new OrderResponseDTO(
                     formattedId,
                     formattedId + "::" + order.getReceivingCode(),
-                    order.getUser(),
                     order.getOrderItems(),
                     order.getStatus(),
                     order.getPickUpLocation(),

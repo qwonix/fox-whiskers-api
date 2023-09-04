@@ -2,6 +2,8 @@ package ru.qwonix.foxwhiskersapi.repository.impl;
 
 import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.Record1;
+import org.jooq.SelectConditionStep;
 import org.jooq.impl.DSL;
 import org.springframework.stereotype.Repository;
 import ru.qwonix.foxwhiskersapi.domain.Tables;
@@ -10,7 +12,9 @@ import ru.qwonix.foxwhiskersapi.repository.OrderRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
+import static org.jooq.impl.DSL.*;
 @Repository
 public class OrderRepositoryImpl implements OrderRepository {
     private final DSLContext dsl;
@@ -21,7 +25,11 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     public List<Order> findAllByPhoneNumber(String phoneNumber) {
-        return null;
+        var subQuery = select(Tables.USER.ID).from(Tables.USER).where(Tables.USER.PHONE_NUMBER.eq(phoneNumber));
+        return dsl.selectFrom(Tables.ORDER)
+                .where(Tables.ORDER.CLIENT_ID.eq(subQuery))
+                .fetch()
+                .into(Order.class);
     }
 
     @Override

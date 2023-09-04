@@ -7,7 +7,9 @@ import ru.qwonix.foxwhiskersapi.entity.PaymentMethod;
 import java.util.List;
 
 public interface OrderService {
-    List<Order> findAllByPhoneNumber(String phoneNumber);
+    List<Order> findAllByUsername(String phoneNumber);
+
+
 
     Order create(String phoneNumber, List<OrderItemDTO> items, Long pickUpLocationId, PaymentMethod paymentMethod);
 }

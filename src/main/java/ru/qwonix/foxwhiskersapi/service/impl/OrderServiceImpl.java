@@ -25,7 +25,6 @@ public class OrderServiceImpl implements OrderService {
     private final PickUpLocationRepository pickUpLocationRepository;
     private final UserService userService;
 
-
     public OrderServiceImpl(OrderRepository orderRepository, DishRepository dishRepository, PickUpLocationRepository pickUpLocationRepository, UserService userService) {
         this.orderRepository = orderRepository;
         this.dishRepository = dishRepository;
@@ -34,7 +33,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<Order> findAllByPhoneNumber(String phoneNumber) {
+    public List<Order> findAllByUsername(String phoneNumber) {
         return orderRepository.findAllByPhoneNumber(phoneNumber);
     }
 
