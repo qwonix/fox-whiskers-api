@@ -27,14 +27,6 @@ public class DishRepositoryImpl implements DishRepository {
     }
 
     @Override
-    public List<Dish> findByType_Id(Long id) {
-        return dsl.selectFrom(Tables.DISH)
-                .where(Tables.DISH.DISH_TYPE_ID.eq(id))
-                .fetch()
-                .into(Dish.class);
-    }
-
-    @Override
     public Dish insert(Dish dish) {
         return dsl.insertInto(Tables.DISH)
                 .set(dsl.newRecord(Tables.DISH, dish))

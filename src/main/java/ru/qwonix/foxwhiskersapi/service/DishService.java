@@ -1,13 +1,12 @@
 package ru.qwonix.foxwhiskersapi.service;
 
-import ru.qwonix.foxwhiskersapi.entity.Dish;
-
-import java.util.List;
-import java.util.Optional;
+import org.springframework.web.util.UriComponentsBuilder;
+import ru.qwonix.foxwhiskersapi.operation.FindDish;
+import ru.qwonix.foxwhiskersapi.operation.FindMenu;
 
 public interface DishService {
 
-    List<Dish> findAll();
+    FindMenu.Result findMenu(UriComponentsBuilder builder);
 
-    Optional<Dish> findById(Long id);
+    FindDish.Result findById(Long id);
 }

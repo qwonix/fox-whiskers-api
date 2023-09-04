@@ -1,10 +1,12 @@
 package ru.qwonix.foxwhiskersapi.service.impl;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 import ru.qwonix.foxwhiskersapi.dto.OrderItemDTO;
 import ru.qwonix.foxwhiskersapi.entity.*;
+import ru.qwonix.foxwhiskersapi.operation.CreateOrder;
 import ru.qwonix.foxwhiskersapi.repository.DishRepository;
 import ru.qwonix.foxwhiskersapi.repository.OrderRepository;
 import ru.qwonix.foxwhiskersapi.repository.PickUpLocationRepository;
@@ -16,21 +18,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-@Slf4j
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Service
 public class OrderServiceImpl implements OrderService {
 
-    private final OrderRepository orderRepository;
-    private final DishRepository dishRepository;
-    private final PickUpLocationRepository pickUpLocationRepository;
-    private final UserService userService;
-
-    public OrderServiceImpl(OrderRepository orderRepository, DishRepository dishRepository, PickUpLocationRepository pickUpLocationRepository, UserService userService) {
-        this.orderRepository = orderRepository;
-        this.dishRepository = dishRepository;
-        this.pickUpLocationRepository = pickUpLocationRepository;
-        this.userService = userService;
-    }
+    OrderRepository orderRepository;
+    DishRepository dishRepository;
+    PickUpLocationRepository pickUpLocationRepository;
+    UserService userService;
 
     @Override
     public List<Order> findAllByUsername(String phoneNumber) {
@@ -38,12 +34,18 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Order create(String phoneNumber, List<OrderItemDTO> items, Long pickUpLocationId, PaymentMethod paymentMethod) {
-        User user = userService.findByPhoneNumber(phoneNumber)
-                .orElseThrow(() -> new UsernameNotFoundException("Клиент " + phoneNumber + " не зарегистрирован"));
+    public CreateOrder.Result create(String phoneNumber, List<OrderItemDTO> items, Long pickUpLocationId, PaymentMethod paymentMethod) {
+        var optionalUser = userService.findByPhoneNumber(phoneNumber);
+        if (optionalUser.isEmpty()) {
+            return CreateOrder.Result.userNotFound();
+        }
+        var user = optionalUser.get();
 
-        PickUpLocation pickUpLocation = pickUpLocationRepository.find(pickUpLocationId)
-                .orElseThrow(() -> new IllegalArgumentException("Пункта выдачи с id " + pickUpLocationId + " не существует"));
+        var optionalPickUpLocation = pickUpLocationRepository.find(pickUpLocationId);
+        if (optionalPickUpLocation.isEmpty()) {
+            return CreateOrder.Result.pickUpLocationNotFound();
+        }
+        var pickUpLocation = optionalPickUpLocation.get();
 
         Order order = Order.builder()
                 .user(user)
@@ -67,6 +69,7 @@ public class OrderServiceImpl implements OrderService {
             order.getOrderItems().add(e);
         }
 
-        return orderRepository.insert(order);
+        var insert = orderRepository.insert(order);
+        return CreateOrder.Result.success(insert);
     }
 }

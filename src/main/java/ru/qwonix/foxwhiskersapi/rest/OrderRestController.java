@@ -2,6 +2,7 @@ package ru.qwonix.foxwhiskersapi.rest;
 
 import com.fasterxml.jackson.databind.node.TextNode;
 import lombok.extern.slf4j.Slf4j;
+import org.jooq.impl.QOM;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -9,6 +10,7 @@ import ru.qwonix.foxwhiskersapi.dto.OrderRequestDTO;
 import ru.qwonix.foxwhiskersapi.dto.OrderResponseDTO;
 import ru.qwonix.foxwhiskersapi.entity.Order;
 import ru.qwonix.foxwhiskersapi.entity.OrderItem;
+import ru.qwonix.foxwhiskersapi.operation.CreateOrder;
 import ru.qwonix.foxwhiskersapi.service.OrderService;
 
 import java.math.BigDecimal;
@@ -61,15 +63,28 @@ public class OrderRestController {
 
 
     @PutMapping
-    public ResponseEntity<Order> create(@RequestBody OrderRequestDTO request) {
-        Order body = orderService.create(
+    public ResponseEntity<?> create(@RequestBody OrderRequestDTO request) {
+        return orderService.create(
                 request.phoneNumber(),
                 request.orderItems(),
                 request.pickUpLocationId(),
-                request.paymentMethod());
+                request.paymentMethod()).process(new CreateOrder.Result.Processor<>() {
+            @Override
+            public ResponseEntity<Order> processSuccess(CreateOrder.Result.Success result) {
+                return ResponseEntity
+                        .status(HttpStatus.CREATED)
+                        .body(result.order());
+            }
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(body);
+            @Override
+            public ResponseEntity<?> processUserNotFound(CreateOrder.Result.UserNotFound result) {
+                return null;
+            }
+
+            @Override
+            public ResponseEntity<?> processPickUpLocationNotFound(CreateOrder.Result.PickUpLocationNotFound result) {
+                return null;
+            }
+        });
     }
 }

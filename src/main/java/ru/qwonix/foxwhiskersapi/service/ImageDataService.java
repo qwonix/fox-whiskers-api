@@ -1,14 +1,14 @@
 package ru.qwonix.foxwhiskersapi.service;
 
 import org.springframework.web.multipart.MultipartFile;
-import ru.qwonix.foxwhiskersapi.entity.ImageData;
+import ru.qwonix.foxwhiskersapi.operation.FindImage;
+import ru.qwonix.foxwhiskersapi.operation.UploadImage;
 
 import java.io.IOException;
-import java.util.Optional;
 
 public interface ImageDataService {
 
-    ImageData uploadImage(MultipartFile file) throws IOException;
+    UploadImage.Result uploadImage(MultipartFile file) throws IOException;
 
-    Optional<ImageData> getImageByImageName(String imageName);
+    FindImage.Result getImageByName(String imageName);
 }

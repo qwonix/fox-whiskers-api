@@ -7,5 +7,4 @@ import java.util.List;
 
 public interface DishRepository extends CrudRepository<Dish, Long> {
 
-    List<Dish> findByType_Id(Long id);
 }

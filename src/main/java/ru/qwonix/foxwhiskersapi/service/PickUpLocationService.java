@@ -2,16 +2,16 @@ package ru.qwonix.foxwhiskersapi.service;
 
 
 import ru.qwonix.foxwhiskersapi.entity.PickUpLocation;
+import ru.qwonix.foxwhiskersapi.operation.FindPickUpLocation;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface PickUpLocationService {
     List<PickUpLocation> getAll();
 
-    Optional<PickUpLocation> getMaxPriority();
+    FindPickUpLocation.Result getMaxPriority();
 
-    Optional<PickUpLocation> getMinPriority();
+    FindPickUpLocation.Result getMinPriority();
 
-    Optional<PickUpLocation> getByPriority(Integer priority);
+    FindPickUpLocation.Result getByPriority(Integer priority);
 }
