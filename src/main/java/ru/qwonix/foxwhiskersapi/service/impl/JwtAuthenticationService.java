@@ -1,16 +1,15 @@
 package ru.qwonix.foxwhiskersapi.service.impl;
 
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import jakarta.annotation.Nonnull;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.GrantedAuthority;
-import ru.qwonix.foxwhiskersapi.entity.User;
 import ru.qwonix.foxwhiskersapi.entity.Permission;
 import ru.qwonix.foxwhiskersapi.entity.Role;
+import ru.qwonix.foxwhiskersapi.entity.User;
+import ru.qwonix.foxwhiskersapi.exception.TokenValidationException;
 import ru.qwonix.foxwhiskersapi.repository.AuthenticationRepository;
 import ru.qwonix.foxwhiskersapi.security.Token;
 import ru.qwonix.foxwhiskersapi.service.AuthenticationService;
@@ -18,46 +17,33 @@ import ru.qwonix.foxwhiskersapi.service.UserService;
 
 import java.security.Key;
 import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
 import java.util.random.RandomGenerator;
 
 @Slf4j
 public class JwtAuthenticationService implements AuthenticationService {
 
-    private final Key accessJwtKey;
-    private final Key refreshJwtKey;
     private final UserService userService;
     private final AuthenticationRepository authenticationRepository;
 
-    @Setter
-    private Duration authenticationCodeTtl = Duration.ofMinutes(4);
+    private static final String AUTHORITIES_CLAIM_NAME = "authorities";
+
+    private final Key accessJwtKey;
+    private final Key refreshJwtKey;
+
     @Setter
     private Duration accessTokenTtl = Duration.ofDays(1);
     @Setter
     private Duration refreshTokenTtl = Duration.ofDays(30);
 
-    /**
-     * @param userService
-     * @param authenticationRepository
-     * @param accessJwtSecret
-     * @param refreshJwtSecret
-     * @throws io.jsonwebtoken.security.WeakKeyException
-     */
-    public JwtAuthenticationService(UserService userService,
-                                    AuthenticationRepository authenticationRepository,
-                                    @Nonnull String accessJwtSecret,
-                                    @Nonnull String refreshJwtSecret
-    ) {
-        this(
-                userService,
-                authenticationRepository,
-                Keys.hmacShaKeyFor(Decoders.BASE64.decode(accessJwtSecret)),
-                Keys.hmacShaKeyFor(Decoders.BASE64.decode(refreshJwtSecret))
-        );
-    }
+    @Setter
+    private Duration authenticationCodeTtl = Duration.ofMinutes(4);
+
 
     public JwtAuthenticationService(UserService userService,
                                     AuthenticationRepository authenticationRepository,
@@ -72,7 +58,7 @@ public class JwtAuthenticationService implements AuthenticationService {
 
     private static int generateCode() {
         RandomGenerator gen = RandomGenerator.of("L128X256MixRandom");
-        return gen.nextInt(0000, 10000);
+        return gen.nextInt(0000, 9_999 + 1);
     }
 
     @Override
@@ -98,53 +84,108 @@ public class JwtAuthenticationService implements AuthenticationService {
 
 
     @Override
-    public String generateAccessToken(String subject, Collection<? extends GrantedAuthority> authorities) {
-        final Instant accessExpirationInstant =
+    public String serializeAccessToken(Token token) {
+        return generateToken(token.subject(), token.authorities(), accessJwtKey, accessTokenTtl);
+    }
+
+    @Override
+    public String serializeRefreshToken(Token token) {
+        return generateToken(token.subject(), token.authorities(), refreshJwtKey, refreshTokenTtl);
+    }
+
+
+    /**
+     * Generates an JWT access token using the provided subject and authorities
+     *
+     * @param subject        subject of the token (typically the username)
+     * @param authorities    collection of authorities associated with the subject
+     * @param accessJwtKey
+     * @param accessTokenTtl
+     * @return generated JWT access token
+     */
+    private String generateToken(String subject, Collection<? extends GrantedAuthority> authorities,
+                                 Key accessJwtKey,
+                                 Duration accessTokenTtl) {
+        final var accessExpirationInstant =
                 LocalDateTime.now().plus(accessTokenTtl).atZone(ZoneId.systemDefault()).toInstant();
-        var permissions = authorities.stream().map(GrantedAuthority::getAuthority).toList();
 
         return Jwts.builder()
                 .setSubject(subject)
-                .claim(PERMISSIONS_CLAIM, permissions)
+                .claim(AUTHORITIES_CLAIM_NAME, authorities)
                 .setExpiration(Date.from(accessExpirationInstant))
                 .signWith(accessJwtKey)
                 .compact();
     }
 
-    @Override
-    public String generateRefreshToken(String subject) {
-        final Instant refreshExpirationInstant =
-                LocalDateTime.now().plus(refreshTokenTtl).atZone(ZoneId.systemDefault()).toInstant();
 
-        return Jwts.builder()
-                .setSubject(subject)
-                .setExpiration(Date.from(refreshExpirationInstant))
-                .claim(PERMISSIONS_CLAIM, Set.of(Permission.TOKEN_REFRESH, Permission.TOKEN_LOGOUT))
-                .signWith(refreshJwtKey)
-                .compact();
+    @Override
+    public Token parseAccessToken(String token) throws TokenValidationException {
+        return parseToken(token, accessJwtKey);
     }
 
     @Override
-    public Token getAccessToken(String token) throws
-            ExpiredJwtException, UnsupportedJwtException, MalformedJwtException, io.jsonwebtoken.security.SignatureException, IllegalArgumentException {
-        return getToken(token, accessJwtKey);
+    public Token parseRefreshToken(String token) throws TokenValidationException {
+        return parseToken(token, refreshJwtKey);
     }
 
-    @Override
-    public Token getRefreshToken(String token) throws
-            ExpiredJwtException, UnsupportedJwtException, MalformedJwtException, io.jsonwebtoken.security.SignatureException, IllegalArgumentException {
-        return getToken(token, refreshJwtKey);
+    /**
+     * Parses and validates a JWT token, returning a Token object containing token authentication information
+     *
+     * @param token  JWT token to parse and validate
+     * @param secret secret key used to validate the token's signature
+     * @return Token object containing token authentication information
+     * @throws TokenValidationException if the token is invalid
+     */
+    private Token parseToken(String token, Key secret) throws TokenValidationException {
+        var claims = parseAndValidateJwt(token, secret);
+        var authorities = extractAuthoritiesAndCreateToken(claims);
+
+        return new Token(claims.getSubject(), authorities);
     }
 
-    private Token getToken(String token, Key secret) throws
-            ExpiredJwtException, UnsupportedJwtException, MalformedJwtException, SignatureException, IllegalArgumentException {
-        Claims body = Jwts.parserBuilder()
-                .setSigningKey(secret)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-
-        return new Token(body.getSubject(), body.get(PERMISSIONS_CLAIM, List.class).stream().map(it -> Permission.valueOf(it.toString())).toList());
+    /**
+     * Extracts authorities from the JWT claims and creates a collection of {@link Permission}
+     *
+     * @param claims The JWT claims containing authority information
+     * @return collection of permissions extracted from the claims
+     * @throws TokenValidationException If there's an issue with the authority claims
+     */
+    private Collection<Permission> extractAuthoritiesAndCreateToken(Claims claims) throws TokenValidationException {
+        try {
+            var stringAuthorities = claims.get(AUTHORITIES_CLAIM_NAME, List.class);
+            var authorities = new HashSet<Permission>(stringAuthorities.size());
+            for (Object authority : stringAuthorities) {
+                var string = authority.toString();
+                authorities.add(Permission.valueOf(string));
+            }
+            return authorities;
+        } catch (ClassCastException | IllegalArgumentException e) {
+            throw new TokenValidationException("Invalid or missing authorities claim", e);
+        }
     }
 
+    /**
+     * Parses and validates a JSON Web Token (JWT) using the provided secret key and returns the claims contained in the token
+     *
+     * @param token  JWT token string to be parsed and validated
+     * @param secret secret key used for JWT validation
+     * @return claims extracted from the validated JWT
+     * @throws TokenValidationException if the token is invalid, expired, or the token string is null/empty/whitespace
+     */
+    private static Claims parseAndValidateJwt(String token, Key secret) throws TokenValidationException {
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(secret)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+
+        } catch (UnsupportedJwtException | MalformedJwtException | SignatureException e) {
+            throw new TokenValidationException("Invalid token", e);
+        } catch (ExpiredJwtException e) {
+            throw new TokenValidationException("Token expired", e);
+        } catch (IllegalArgumentException e) {
+            throw new TokenValidationException("Token string is null or empty or only whitespace", e);
+        }
+    }
 }

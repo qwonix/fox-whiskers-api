@@ -1,6 +1,5 @@
 package ru.qwonix.foxwhiskersapi.config;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -57,9 +56,8 @@ public class SecurityConfig {
     @Bean
     public JwtAuthenticationService authenticationService(UserService userService,
                                                           AuthenticationRepository authenticationRepository,
-                                                          @Value("${jwt.key.access}") String jwtAccessSecret,
-                                                          @Value("${jwt.key.refresh}") String jwtRefreshSecret) {
-        return new JwtAuthenticationService(userService, authenticationRepository, jwtAccessSecret, jwtRefreshSecret);
+                                                          JwtTokenProperties jwtTokenProperties) {
+        return new JwtAuthenticationService(userService, authenticationRepository, jwtTokenProperties.getAccessKey(), jwtTokenProperties.getRefreshKey());
     }
 
 

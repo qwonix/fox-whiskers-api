@@ -2,8 +2,8 @@ package ru.qwonix.foxwhiskersapi.security;
 
 import lombok.ToString;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 
@@ -15,7 +15,7 @@ import java.util.Collection;
 public class JwtAuthenticationToken extends AbstractAuthenticationToken {
 
     private final String jwtToken;
-    private String username;
+    private UserDetails userDetails;
 
     public JwtAuthenticationToken(String jwtToken) {
         super(null);
@@ -23,10 +23,10 @@ public class JwtAuthenticationToken extends AbstractAuthenticationToken {
         setAuthenticated(false);
     }
 
-    public JwtAuthenticationToken(String jwtToken, String username, Collection<? extends GrantedAuthority> authorities) {
+    public JwtAuthenticationToken(String jwtToken, UserDetails userDetails, Collection<? extends GrantedAuthority> authorities) {
         super(authorities);
         this.jwtToken = jwtToken;
-        this.username = username;
+        this.userDetails = userDetails;
         setAuthenticated(true);
     }
 
@@ -35,8 +35,8 @@ public class JwtAuthenticationToken extends AbstractAuthenticationToken {
         return new JwtAuthenticationToken(jwtToken);
     }
 
-    public static JwtAuthenticationToken authenticated(String jwtToken, String username, Collection<? extends GrantedAuthority> authorities) {
-        return new JwtAuthenticationToken(jwtToken, username, authorities);
+    public static JwtAuthenticationToken authenticated(String jwtToken, UserDetails userDetails, Collection<? extends GrantedAuthority> authorities) {
+        return new JwtAuthenticationToken(jwtToken, userDetails, authorities);
     }
 
     @Override
@@ -46,6 +46,6 @@ public class JwtAuthenticationToken extends AbstractAuthenticationToken {
 
     @Override
     public Object getPrincipal() {
-        return username;
+        return userDetails;
     }
 }

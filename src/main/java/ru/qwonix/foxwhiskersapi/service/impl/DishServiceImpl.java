@@ -3,6 +3,7 @@ package ru.qwonix.foxwhiskersapi.service.impl;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 import ru.qwonix.foxwhiskersapi.dto.DishDTO;
@@ -18,14 +19,15 @@ import ru.qwonix.foxwhiskersapi.service.DishService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
+
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Service
 public class DishServiceImpl implements DishService {
 
     DishRepository dishRepository;
+    ModelMapper modelMapper;
 
     @Override
     public FindMenu.Result findMenu(UriComponentsBuilder builder) {

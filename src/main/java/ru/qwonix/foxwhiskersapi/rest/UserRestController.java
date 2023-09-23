@@ -3,7 +3,10 @@ package ru.qwonix.foxwhiskersapi.rest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.qwonix.foxwhiskersapi.dto.UpdateUserDTO;
 import ru.qwonix.foxwhiskersapi.entity.Role;
 import ru.qwonix.foxwhiskersapi.entity.User;
+import ru.qwonix.foxwhiskersapi.security.JwtAuthenticationToken;
 import ru.qwonix.foxwhiskersapi.service.UserService;
 
 @Slf4j
@@ -25,10 +29,10 @@ public class UserRestController {
     }
 
     @PatchMapping
-    public ResponseEntity<User> patch(@AuthenticationPrincipal org.springframework.security.core.userdetails.User authenticationUser, @RequestBody UpdateUserDTO updateUserDTO) {
-        log.info("user {} send request to update account info {}", authenticationUser.getUsername(), updateUserDTO);
+    public ResponseEntity<User> patch(@AuthenticationPrincipal UserDetails userDetails, @RequestBody UpdateUserDTO updateUserDTO) {
+        log.info("user {} send request to update account info {}", userDetails.getUsername(), updateUserDTO);
 
-        var optionalUser = userService.findByPhoneNumber(authenticationUser.getUsername());
+        var optionalUser = userService.findByPhoneNumber(userDetails.getUsername().toString());
         if (optionalUser.isPresent()) {
             var user = optionalUser.get();
 

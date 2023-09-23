@@ -14,12 +14,12 @@ import java.util.Base64;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class JwtAuthenticationRequestConverterTest {
+class JwtAuthenticationConverterTest {
 
     private static final String PHONE_NUMBER = "+7 (999) 123-45-67";
     private static final String CODE = "1111";
     private static final String ENCODED_VALID_TOKEN = Base64.getEncoder().encodeToString(
-            (PHONE_NUMBER + CodeVerificationAuthenticationConverter.TOKEN_SEPARATOR + CODE).getBytes()
+            (PHONE_NUMBER + CodeVerificationConverter.TOKEN_SEPARATOR + CODE).getBytes()
     );
 
     @Mock
@@ -28,7 +28,7 @@ class JwtAuthenticationRequestConverterTest {
     HttpServletRequest request;
 
     @InjectMocks
-    JwtAuthenticationRequestConverter jwtAuthenticationRequestConverter;
+    JwtAuthenticationConverter jwtAuthenticationRequestConverter;
 
 
     @Test

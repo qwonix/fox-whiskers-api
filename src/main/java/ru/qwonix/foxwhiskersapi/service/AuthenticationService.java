@@ -1,10 +1,7 @@
 package ru.qwonix.foxwhiskersapi.service;
 
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.UnsupportedJwtException;
-import io.jsonwebtoken.security.SignatureException;
 import org.springframework.security.core.GrantedAuthority;
+import ru.qwonix.foxwhiskersapi.exception.TokenValidationException;
 import ru.qwonix.foxwhiskersapi.security.Token;
 
 import java.time.Duration;
@@ -12,8 +9,6 @@ import java.util.Collection;
 
 public interface AuthenticationService {
 
-    // FIXME: 11.08.2023 remove constant
-    String PERMISSIONS_CLAIM = "permissions";
 
     void setAuthenticationCodeTtl(Duration authenticationCodeTtl);
 
@@ -27,13 +22,11 @@ public interface AuthenticationService {
 
     Boolean clearAuthenticationCode(String username);
 
-    String generateAccessToken(String subject, Collection<? extends GrantedAuthority> authorities);
+    String serializeAccessToken(Token token);
 
-    String generateRefreshToken(String subject);
+    String serializeRefreshToken(Token token);
 
-    Token getAccessToken(String token) throws
-            ExpiredJwtException, UnsupportedJwtException, MalformedJwtException, SignatureException, IllegalArgumentException;
+    Token parseAccessToken(String token) throws TokenValidationException;
 
-    Token getRefreshToken(String token) throws
-            ExpiredJwtException, UnsupportedJwtException, MalformedJwtException, SignatureException, IllegalArgumentException;
+    Token parseRefreshToken(String token) throws TokenValidationException;
 }

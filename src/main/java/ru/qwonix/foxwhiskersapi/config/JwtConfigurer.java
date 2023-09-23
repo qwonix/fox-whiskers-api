@@ -15,9 +15,10 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
+import ru.qwonix.foxwhiskersapi.security.JwtAuthenticationProvider;
 import ru.qwonix.foxwhiskersapi.security.TokenAuthenticationUserDetailsService;
-import ru.qwonix.foxwhiskersapi.security.converter.CodeVerificationAuthenticationConverter;
-import ru.qwonix.foxwhiskersapi.security.converter.JwtAuthenticationRequestConverter;
+import ru.qwonix.foxwhiskersapi.security.converter.CodeVerificationConverter;
+import ru.qwonix.foxwhiskersapi.security.converter.JwtAuthenticationConverter;
 import ru.qwonix.foxwhiskersapi.security.converter.JwtRefreshConverter;
 import ru.qwonix.foxwhiskersapi.security.filter.RequestTokensFilter;
 import ru.qwonix.foxwhiskersapi.service.AuthenticationService;
@@ -46,7 +47,7 @@ public class JwtConfigurer extends AbstractHttpConfigurer<JwtConfigurer, HttpSec
 
         var jwtAuthenticationFilter = new AuthenticationFilter(
                 authenticationManager,
-                new JwtAuthenticationRequestConverter(authenticationService)
+                new JwtAuthenticationConverter()
         );
         // all requests except those related to authentication
         jwtAuthenticationFilter.setRequestMatcher(new NegatedRequestMatcher(new OrRequestMatcher(authenticationRequestMatcher, refreshRequestMatcher)));
@@ -65,7 +66,7 @@ public class JwtConfigurer extends AbstractHttpConfigurer<JwtConfigurer, HttpSec
 
         var codeVerificationAuthenticationFilter = new AuthenticationFilter(
                 authenticationManager,
-                new CodeVerificationAuthenticationConverter(authenticationService)
+                new CodeVerificationConverter(authenticationService)
         );
         codeVerificationAuthenticationFilter.setRequestMatcher(authenticationRequestMatcher);
         codeVerificationAuthenticationFilter.setSuccessHandler((request, response, authentication) -> CsrfFilter.skipRequest(request));
@@ -73,7 +74,7 @@ public class JwtConfigurer extends AbstractHttpConfigurer<JwtConfigurer, HttpSec
         codeVerificationAuthenticationFilter.setBeanName("Сode Authentication Verification Filter");
 
         var authenticationProvider = new PreAuthenticatedAuthenticationProvider();
-        var codeVerificationAuthenticationUserDetailsService = new TokenAuthenticationUserDetailsService(userService, authenticationService);
+        var codeVerificationAuthenticationUserDetailsService = new TokenAuthenticationUserDetailsService(userService);
         authenticationProvider.setPreAuthenticatedUserDetailsService(codeVerificationAuthenticationUserDetailsService);
 
         var requestTokensFilter = new RequestTokensFilter(authenticationService);
@@ -85,6 +86,7 @@ public class JwtConfigurer extends AbstractHttpConfigurer<JwtConfigurer, HttpSec
                 .addFilterAfter(jwtAuthenticationFilter, jwtRefreshFilter.getClass())
                 .addFilterAfter(requestTokensFilter, ExceptionTranslationFilter.class)
                 .addFilterBefore(codeVerificationAuthenticationFilter, RequestTokensFilter.class)
+                .authenticationProvider(new JwtAuthenticationProvider(authenticationService))
         ;
     }
 

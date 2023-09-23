@@ -13,6 +13,7 @@ import ru.qwonix.foxwhiskersapi.TestcontainersConfiguration;
 import ru.qwonix.foxwhiskersapi.entity.Role;
 import ru.qwonix.foxwhiskersapi.entity.User;
 import ru.qwonix.foxwhiskersapi.entity.UserStatus;
+import ru.qwonix.foxwhiskersapi.security.Token;
 import ru.qwonix.foxwhiskersapi.service.AuthenticationService;
 
 import java.time.LocalDateTime;
@@ -91,7 +92,7 @@ class UserRestControllerIT {
     AuthenticationService authenticationService;
 
     void handlePatch_IncompleteRegistration(String requestContent, String expectedResponseContent) throws Exception {
-        String accessToken = authenticationService.generateAccessToken(IVAN_IVANOV.getPhoneNumber(), IVAN_IVANOV.getRole().getAuthorities());
+        String accessToken = authenticationService.serializeAccessToken(new Token(IVAN_IVANOV.getPhoneNumber(), IVAN_IVANOV.getRole().getAuthorities()));
 
         var requestBuilder = patch("/api/v1/user")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
@@ -184,19 +185,19 @@ class UserRestControllerIT {
     }
 
 //    @Test
-//    void handle_UpdateNameInvalidAuthenticatonToken_AccessDenied() {
-//        String invalidAccessToken = authenticationService.generateAccessToken(IVAN_IVANOV.getPhoneNumber(), IVAN_IVANOV.getRole().getAuthorities());
+//    void handle_UpdateNameInvalidAuthenticatonToken_AccessDenied() throws Exception {
+//        String invalidAccessToken = authenticationService.serializeAccessToken(new Token(IVAN_IVANOV.getPhoneNumber(), IVAN_IVANOV.getRole().getAuthorities()));
 //
 //        var requestBuilder = patch("/api/v1/user")
 //                .header(HttpHeaders.AUTHORIZATION, "Bearer " + invalidAccessToken)
 //                .contentType(MediaType.APPLICATION_JSON)
-//                .content(requestContent);
+//                .content("");
 //
 //
 //        this.mockMvc.perform(requestBuilder).andExpectAll(
 //                status().isOk(),
 //                content().contentType(MediaType.APPLICATION_JSON),
-//                content().json(expectedResponseContent)
+//                content().json()
 //        );
 //    }
 }

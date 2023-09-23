@@ -8,6 +8,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationConverter;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import ru.qwonix.foxwhiskersapi.entity.Permission;
+import ru.qwonix.foxwhiskersapi.exception.TokenValidationException;
+import ru.qwonix.foxwhiskersapi.security.Token;
 import ru.qwonix.foxwhiskersapi.service.AuthenticationService;
 
 @Slf4j
@@ -23,9 +25,13 @@ public class JwtRefreshConverter implements AuthenticationConverter {
         log.info("token refresh request");
         final var token = obtainToken(request);
         if (token != null) {
-            var refreshToken = authenticationService.getRefreshToken(token);
-            if (refreshToken != null && refreshToken.authorities().contains(Permission.TOKEN_REFRESH)) {
-                return new PreAuthenticatedAuthenticationToken(refreshToken.subject(), token, refreshToken.authorities());
+            try {
+                Token refreshToken = authenticationService.parseRefreshToken(token);
+                if (refreshToken != null && refreshToken.authorities().contains(Permission.TOKEN_REFRESH)) {
+                    return new PreAuthenticatedAuthenticationToken(refreshToken.subject(), token, refreshToken.authorities());
+                }
+            } catch (TokenValidationException e) {
+                return new PreAuthenticatedAuthenticationToken(token, token);
             }
         }
         return null;

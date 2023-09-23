@@ -6,7 +6,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import ru.qwonix.foxwhiskersapi.entity.User;
-import ru.qwonix.foxwhiskersapi.service.AuthenticationService;
 import ru.qwonix.foxwhiskersapi.service.UserService;
 
 import java.util.Optional;
@@ -17,7 +16,6 @@ public class TokenAuthenticationUserDetailsService
         implements org.springframework.security.core.userdetails.AuthenticationUserDetailsService<PreAuthenticatedAuthenticationToken> {
 
     private final UserService userService;
-    private final AuthenticationService authenticationService;
 
     @Override
     public UserDetails loadUserDetails(PreAuthenticatedAuthenticationToken token) throws UsernameNotFoundException {

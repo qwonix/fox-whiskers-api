@@ -8,13 +8,10 @@ authentication:
     ttl: 5m
 
 jwt:
-  key:
-    access: h9dHOdBnBQ2AVk5dX8wV3zXoxBwnlhk5P4gEQXyS5SOqqrmLI8odYKxdKwJg6FNUREFE3khJVtKHigcQWRp/aA==
-    refresh: qifEPLE6seg6O6dGeuFw64S7WfrYrW372GGM2VK2NqWpuRxwaciw8hy2BjBJ3Fc2XeM52qGKGMeyhphFi9BPFA==
-  ttl:
-    access: 1h
-    refresh: 5h
-
+  access-ttl: 1h
+  refresh-ttl: 5h
+  access-key: h9dHOdBnBQ2AVk5dX8wV3zXoxBwnlhk5P4gEQXyS5SOqqrmLI8odYKxdKwJg6FNUREFE3khJVtKHigcQWRp/aA==
+  refresh-key: qifEPLE6seg6O6dGeuFw64S7WfrYrW372GGM2VK2NqWpuRxwaciw8hy2BjBJ3Fc2XeM52qGKGMeyhphFi9BPFA==
 
 logging:
   level:

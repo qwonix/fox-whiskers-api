@@ -1,8 +1,8 @@
 package ru.qwonix.foxwhiskersapi.security;
 
-import ru.qwonix.foxwhiskersapi.entity.Permission;
+import org.springframework.security.core.GrantedAuthority;
 
-import java.util.List;
+import java.util.Collection;
 
-public record Token(String subject, List<Permission> authorities) {
+public record Token(String subject, Collection<? extends GrantedAuthority> authorities) {
 }

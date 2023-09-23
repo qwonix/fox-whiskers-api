@@ -10,7 +10,7 @@ import java.util.Set;
 public enum Role {
     CLIENT(Set.of(Permission.READ)),
     ADMIN(Set.of(Permission.READ, Permission.WRITE)),
-    INCOMPLETE_REGISTRATION(Set.of());
+    INCOMPLETE_REGISTRATION(Set.of(Permission.UPDATE_INFO));
 
     private final Set<Permission> permissions;
 

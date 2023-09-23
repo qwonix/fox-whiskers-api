@@ -15,7 +15,7 @@ import java.util.Base64;
 
 @Slf4j
 @RequiredArgsConstructor
-public class CodeVerificationAuthenticationConverter implements AuthenticationConverter {
+public class CodeVerificationConverter implements AuthenticationConverter {
 
     public static final char TOKEN_SEPARATOR = ':';
     private static final String AUTHENTICATION_SCHEME = "CodeVerification";
